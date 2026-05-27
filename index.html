@@ -3,27 +3,38 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>Mapa de Empresas — Argentina</title>
+<title>Mapa de Empresas CORE</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;width:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#2c3e50;background:#1a2740;}
-
-header{position:fixed;top:0;left:0;right:0;z-index:1000;background:#1a2740;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;height:48px;}
-header h1{font-size:14px;font-weight:500;flex:1;}
-header span{font-size:11px;color:#8a99b0;}
-.header-btns{display:flex;gap:6px;}
-.header-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;}
-.header-btn:hover{background:rgba(255,255,255,0.18);}
-
+header{position:fixed;top:0;left:0;right:0;z-index:1000;background:#1a2740;color:#fff;padding:0 14px;display:flex;flex-direction:column;justify-content:center;}
+.header-row1{display:flex;align-items:center;gap:8px;height:48px;}
+header h1{font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+header span{font-size:11px;color:#8a99b0;white-space:nowrap;}
+.header-row2{display:flex;gap:6px;padding:0 0 8px;flex-wrap:nowrap;}
+.header-btns-desktop{display:flex;gap:4px;flex-shrink:0;}
+.hbtn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;flex:1;justify-content:center;}
+.hbtn:hover{background:rgba(255,255,255,0.22);}
+.hbtn-icon{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.hbtn-icon:hover{background:rgba(255,255,255,0.22);}
+@media(min-width:700px){
+  .header-row2{display:none;}
+  .header-btns-desktop{display:flex;}
+  header{height:48px;flex-direction:row;align-items:center;padding:0 14px;}
+  .header-row1{flex:1;height:auto;}
+}
 #map{position:fixed;top:48px;left:0;right:0;bottom:0;z-index:0;}
-
+@media(max-width:699px){
+  header{height:auto;}
+  #map{top:96px;}
+  .fab-group{top:108px;}
+}
 .fab-group{position:fixed;right:12px;top:60px;z-index:900;display:flex;flex-direction:column;gap:8px;}
 .fab{width:42px;height:42px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#1a2740;}
 .fab:active{transform:scale(0.93);}
 .fab.primary{background:#1a2740;color:#fff;}
-
 .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:1100;pointer-events:none;transition:background 0.25s;}
 .sheet-overlay.open{background:rgba(0,0,0,0.35);pointer-events:all;}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:1200;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,0.18);transform:translateY(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1);max-height:90vh;display:flex;flex-direction:column;}
@@ -33,7 +44,6 @@ header span{font-size:11px;color:#8a99b0;}
 .sheet-header h2{font-size:15px;font-weight:500;color:#1a2740;flex:1;}
 .sheet-header button{padding:5px 10px;border:1px solid #dce3ed;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;}
 .sheet-body{overflow-y:auto;padding:0 16px 24px;flex:1;}
-
 @media(min-width:700px){
   .sheet-overlay,.sheet,.fab-group{display:none!important;}
   .desktop-panel{display:flex!important;}
@@ -45,12 +55,10 @@ header span{font-size:11px;color:#8a99b0;}
 .desktop-panel .tabs button.active{color:#1a2740;border-bottom-color:#1a2740;font-weight:500;}
 .desktop-panel .tab-content{display:none;flex:1;overflow-y:auto;padding:12px;flex-direction:column;}
 .desktop-panel .tab-content.active{display:flex;}
-
 label{font-size:11px;color:#8a99b0;display:block;margin-bottom:3px;margin-top:10px;}
 label:first-child{margin-top:0;}
-input[type=text],select{width:100%;padding:9px 11px;border:1px solid #dce3ed;border-radius:8px;font-size:13px;color:#2c3e50;background:#f9fafc;outline:none;}
-input[type=text]:focus,select:focus{border-color:#378ADD;background:#fff;}
-
+input[type=text],input[type=tel],input[type=email],select{width:100%;padding:9px 11px;border:1px solid #dce3ed;border-radius:8px;font-size:13px;color:#2c3e50;background:#f9fafc;outline:none;}
+input:focus,select:focus{border-color:#378ADD;background:#fff;}
 .autocomplete-wrap{position:relative;}
 .autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #dce3ed;border-radius:9px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:9999;max-height:200px;overflow-y:auto;display:none;}
 .autocomplete-list.open{display:block;}
@@ -62,21 +70,21 @@ input[type=text]:focus,select:focus{border-color:#378ADD;background:#fff;}
 .location-selected.show{display:flex;}
 .location-selected i{font-size:15px;flex-shrink:0;}
 .loc-change{margin-left:auto;font-size:11px;color:#378ADD;cursor:pointer;text-decoration:underline;white-space:nowrap;}
-
 .btn-row{display:flex;gap:8px;margin-top:12px;}
 button.btn-primary{flex:1;padding:10px;border:none;border-radius:9px;background:#1a2740;color:#fff;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
 button.btn-primary:active{background:#243655;}
 button.btn-sec{flex:1;padding:10px;border:1px solid #dce3ed;border-radius:9px;background:#fff;color:#2c3e50;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
 button.btn-sec:active{background:#f0f4f8;}
-
-.contacto-block{background:#f4f6f9;border-radius:9px;padding:10px;margin-top:6px;}
-.contacto-block .c-row{display:flex;gap:6px;margin-bottom:5px;}
+/* Bloque contacto */
+.contacto-block{background:#f4f6f9;border-radius:9px;padding:10px;margin-top:6px;position:relative;}
+.contacto-block .c-row{display:flex;gap:6px;margin-bottom:6px;}
 .contacto-block .c-row:last-child{margin-bottom:0;}
 .contacto-block .c-row input{flex:1;margin:0;}
+.contacto-block .c-label{font-size:10px;color:#8a99b0;margin-bottom:2px;margin-top:0;}
+.contacto-block .c-field{display:flex;flex-direction:column;flex:1;}
+.btn-rem-c{position:absolute;top:8px;right:8px;padding:4px 7px;border:1px solid #f5c6c6;border-radius:7px;background:#fff;color:#c0392b;cursor:pointer;font-size:12px;}
 .btn-add-c{width:100%;margin-top:8px;padding:8px;border:1px dashed #b5d4f4;border-radius:8px;background:transparent;color:#378ADD;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
 .btn-add-c:active{background:#eaf3fb;}
-.btn-rem-c{padding:6px 8px;border:1px solid #f5c6c6;border-radius:7px;background:#fff;color:#c0392b;cursor:pointer;flex-shrink:0;}
-
 .filter-wrap{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
 .empresa-card{background:#fff;border:1px solid #dce3ed;border-radius:10px;padding:10px 12px;border-left:4px solid #ccc;margin-bottom:6px;}
 .empresa-card .ec-nombre{font-weight:500;font-size:13px;color:#1a2740;}
@@ -88,36 +96,44 @@ button.btn-sec:active{background:#f0f4f8;}
 .empresa-card .ec-actions button:active{background:#f0f4f8;}
 .empresa-card .ec-actions .btn-del{color:#c0392b;border-color:#f5c6c6;}
 .empty-msg{text-align:center;color:#8a99b0;font-size:13px;padding:24px 0;}
-
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.open{display:flex;}
 .modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;}
 .modal h2{font-size:15px;font-weight:500;color:#1a2740;margin-bottom:12px;}
-
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2740;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:3000;opacity:0;transition:all 0.3s;pointer-events:none;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2740;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:3000;opacity:0;transition:all 0.3s;pointer-events:none;text-align:center;max-width:90vw;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
 
 <header>
-  <i class="ti ti-map-pin" style="font-size:18px;"></i>
-  <h1>Mapa de Empresas — Argentina</h1>
-  <div class="header-btns">
-    <button class="header-btn" onclick="exportarExcel()" title="Exportar Excel"><i class="ti ti-table"></i> <span class="hide-xs">Excel</span></button>
-    <button class="header-btn" onclick="document.getElementById('imp-excel-file').click()" title="Importar Excel"><i class="ti ti-table-import"></i> <span class="hide-xs">Importar Excel</span></button>
-    <button class="header-btn" onclick="exportarDatos()" title="Exportar JSON"><i class="ti ti-download"></i> <span class="hide-xs">Exportar</span></button>
-    <button class="header-btn" onclick="document.getElementById('imp-file').click()" title="Importar JSON"><i class="ti ti-upload"></i> <span class="hide-xs">Importar</span></button>
-    <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importarDatos(event)"/>
-    <input type="file" id="imp-excel-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importarExcel(event)"/>
+  <!-- Fila 1: título y contador -->
+  <div class="header-row1">
+    <i class="ti ti-map-pin" style="font-size:18px;flex-shrink:0;"></i>
+    <h1>Mapa de Empresas CORE</h1>
+    <!-- Solo visible en desktop -->
+    <div class="header-btns-desktop">
+      <button class="hbtn-icon" onclick="exportarExcel()" title="Bajar Excel"><i class="ti ti-table"></i> Excel</button>
+      <button class="hbtn-icon" onclick="document.getElementById('imp-excel-file').click()" title="Importar Excel"><i class="ti ti-table-import"></i> Importar</button>
+      <button class="hbtn-icon" onclick="exportarJSON()" title="Backup JSON"><i class="ti ti-download"></i></button>
+      <button class="hbtn-icon" onclick="document.getElementById('imp-json-file').click()" title="Restaurar JSON"><i class="ti ti-upload"></i></button>
+    </div>
+    <span id="header-count">0</span>
   </div>
-  <span id="header-count">0 empresas</span>
+  <!-- Fila 2: botones solo en móvil -->
+  <div class="header-row2">
+    <button class="hbtn" onclick="exportarExcel()"><i class="ti ti-table"></i> Bajar Excel</button>
+    <button class="hbtn" onclick="document.getElementById('imp-excel-file').click()"><i class="ti ti-table-import"></i> Importar Excel</button>
+    <button class="hbtn" onclick="exportarJSON()"><i class="ti ti-download"></i> Backup</button>
+    <button class="hbtn" onclick="document.getElementById('imp-json-file').click()"><i class="ti ti-upload"></i> Restaurar</button>
+  </div>
+  <input type="file" id="imp-excel-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importarExcel(event)"/>
+  <input type="file" id="imp-json-file" accept=".json" style="display:none" onchange="importarJSON(event)"/>
 </header>
 
 <div id="map"></div>
 <div class="toast" id="toast"></div>
 
-<!-- FAB móvil -->
 <div class="fab-group">
   <button class="fab primary" onclick="abrirSheet('nueva')"><i class="ti ti-plus"></i></button>
   <button class="fab" onclick="abrirSheet('lista')"><i class="ti ti-list"></i></button>
@@ -135,18 +151,18 @@ button.btn-sec:active{background:#f0f4f8;}
   <div class="sheet-body">
     <label>Buscar ubicación</label>
     <div class="autocomplete-wrap">
-      <input type="text" id="inp-buscar" placeholder="Ej: Buenos Aires, Córdoba..." autocomplete="off" oninput="onBuscarInput('inp-buscar','ac-list','inp')"/>
-      <div class="autocomplete-list" id="ac-list"></div>
+      <input type="text" id="inp-buscar" placeholder="Ej: Córdoba, Mendoza..." autocomplete="off" oninput="onBuscarInput('inp-buscar','inp-ac','inp')"/>
+      <div class="autocomplete-list" id="inp-ac"></div>
     </div>
     <div class="location-selected" id="inp-loc">
-      <i class="ti ti-map-pin"></i>
-      <span id="inp-loc-texto"></span>
-      <span class="loc-change" onclick="cambiarUbicacion('inp-buscar','ac-list','inp-loc','inp')">Cambiar</span>
+      <i class="ti ti-map-pin"></i><span id="inp-loc-texto"></span>
+      <span class="loc-change" onclick="cambiarUbicacion('inp-buscar','inp-ac','inp-loc','inp')">Cambiar</span>
     </div>
     <label>Nombre de la empresa</label>
     <input type="text" id="inp-nombre" placeholder="Ej: Telecom SA"/>
     <label>Estado</label>
-    <select id="inp-estado"><option value="">— Seleccioná un estado —</option>
+    <select id="inp-estado">
+      <option value="">— Seleccioná un estado —</option>
       <option value="facturacion">OP con facturación</option>
       <option value="migracion-final">OP con migración de base final</option>
       <option value="migracion-via">OP en vía de migración</option>
@@ -158,10 +174,10 @@ button.btn-sec:active{background:#f0f4f8;}
     </select>
     <label>Contactos</label>
     <div id="inp-contactos"></div>
-    <button class="btn-add-c" onclick="agregarFilaContacto('inp-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
+    <button class="btn-add-c" onclick="agregarContacto('inp-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
     <div class="btn-row">
       <button class="btn-sec" onclick="cerrarSheet()"><i class="ti ti-x"></i> Cancelar</button>
-      <button class="btn-primary" onclick="guardarNueva()"><i class="ti ti-check"></i> Guardar</button>
+      <button class="btn-primary" onclick="guardarNueva('inp','inp-contactos','inp-loc')"><i class="ti ti-check"></i> Guardar</button>
     </div>
   </div>
 </div>
@@ -201,18 +217,18 @@ button.btn-sec:active{background:#f0f4f8;}
   <div class="tab-content active" id="dtab-nueva">
     <label>Buscar ubicación</label>
     <div class="autocomplete-wrap">
-      <input type="text" id="d-buscar" placeholder="Ej: Mendoza, Rosario..." autocomplete="off" oninput="onBuscarInput('d-buscar','d-ac-list','d')"/>
-      <div class="autocomplete-list" id="d-ac-list"></div>
+      <input type="text" id="d-buscar" placeholder="Ej: Rosario, Salta..." autocomplete="off" oninput="onBuscarInput('d-buscar','d-ac','d')"/>
+      <div class="autocomplete-list" id="d-ac"></div>
     </div>
     <div class="location-selected" id="d-loc">
-      <i class="ti ti-map-pin"></i>
-      <span id="d-loc-texto"></span>
-      <span class="loc-change" onclick="cambiarUbicacion('d-buscar','d-ac-list','d-loc','d')">Cambiar</span>
+      <i class="ti ti-map-pin"></i><span id="d-loc-texto"></span>
+      <span class="loc-change" onclick="cambiarUbicacion('d-buscar','d-ac','d-loc','d')">Cambiar</span>
     </div>
     <label>Nombre de la empresa</label>
     <input type="text" id="d-nombre" placeholder="Ej: Telecom SA"/>
     <label>Estado</label>
-    <select id="d-estado"><option value="">— Seleccioná un estado —</option>
+    <select id="d-estado">
+      <option value="">— Seleccioná un estado —</option>
       <option value="facturacion">OP con facturación</option>
       <option value="migracion-final">OP con migración de base final</option>
       <option value="migracion-via">OP en vía de migración</option>
@@ -224,9 +240,9 @@ button.btn-sec:active{background:#f0f4f8;}
     </select>
     <label>Contactos</label>
     <div id="d-contactos"></div>
-    <button class="btn-add-c" onclick="agregarFilaContacto('d-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
+    <button class="btn-add-c" onclick="agregarContacto('d-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
     <div class="btn-row">
-      <button class="btn-primary" onclick="guardarNuevaD()"><i class="ti ti-check"></i> Guardar</button>
+      <button class="btn-primary" onclick="guardarNueva('d','d-contactos','d-loc')"><i class="ti ti-check"></i> Guardar</button>
     </div>
   </div>
   <div class="tab-content" id="dtab-lista">
@@ -252,18 +268,18 @@ button.btn-sec:active{background:#f0f4f8;}
     <h2><i class="ti ti-edit" style="font-size:15px;margin-right:6px;"></i>Editar empresa</h2>
     <label>Ubicación</label>
     <div class="autocomplete-wrap">
-      <input type="text" id="m-buscar" placeholder="Buscar nueva ubicación..." autocomplete="off" oninput="onBuscarInput('m-buscar','m-ac-list','m')"/>
-      <div class="autocomplete-list" id="m-ac-list"></div>
+      <input type="text" id="m-buscar" placeholder="Buscar nueva ubicación..." autocomplete="off" oninput="onBuscarInput('m-buscar','m-ac','m')"/>
+      <div class="autocomplete-list" id="m-ac"></div>
     </div>
     <div class="location-selected" id="m-loc">
-      <i class="ti ti-map-pin"></i>
-      <span id="m-loc-texto"></span>
-      <span class="loc-change" onclick="cambiarUbicacion('m-buscar','m-ac-list','m-loc','m')">Cambiar</span>
+      <i class="ti ti-map-pin"></i><span id="m-loc-texto"></span>
+      <span class="loc-change" onclick="cambiarUbicacion('m-buscar','m-ac','m-loc','m')">Cambiar</span>
     </div>
     <label>Nombre</label>
     <input type="text" id="m-nombre"/>
     <label>Estado</label>
-    <select id="m-estado"><option value="">— Seleccioná un estado —</option>
+    <select id="m-estado">
+      <option value="">— Seleccioná un estado —</option>
       <option value="facturacion">OP con facturación</option>
       <option value="migracion-final">OP con migración de base final</option>
       <option value="migracion-via">OP en vía de migración</option>
@@ -275,7 +291,7 @@ button.btn-sec:active{background:#f0f4f8;}
     </select>
     <label>Contactos</label>
     <div id="m-contactos"></div>
-    <button class="btn-add-c" onclick="agregarFilaContacto('m-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
+    <button class="btn-add-c" onclick="agregarContacto('m-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
     <div class="btn-row" style="margin-top:12px;">
       <button class="btn-sec" onclick="cerrarModal()"><i class="ti ti-x"></i> Cancelar</button>
       <button class="btn-primary" onclick="guardarModal()"><i class="ti ti-check"></i> Guardar</button>
@@ -300,9 +316,19 @@ const ESTADOS = {
   reconectar:        {label:'OP a reconectar',                 color:'#a29bfe', text:'#4a3d8f'},
 };
 
+const MAPA_ESTADOS = {
+  'op con facturación':'facturacion','op con facturacion':'facturacion','facturación':'facturacion','facturacion':'facturacion',
+  'op con migración de base final':'migracion-final','op migración base final':'migracion-final','migracion-final':'migracion-final',
+  'op en vía de migración':'migracion-via','op en via de migracion':'migracion-via','migracion-via':'migracion-via',
+  'op confirmados en pre implementación':'pre-impl','op pre implementación':'pre-impl','pre-impl':'pre-impl','pre implementacion':'pre-impl',
+  'prospectos interesados, en seguimiento':'prospecto','prospectos en seguimiento':'prospecto','prospecto':'prospecto',
+  'op no interesados':'no-interesado','no interesados':'no-interesado','no-interesado':'no-interesado',
+  'op especiales':'especial','especial':'especial','especiales':'especial',
+  'op a reconectar':'reconectar','reconectar':'reconectar',
+};
+
 let map, empresas = [], modalId = null;
-const pending = {};
-const acTimers = {};
+const pending = {}, acTimers = {};
 
 /* ── MAP ── */
 function initMap() {
@@ -331,10 +357,8 @@ async function onBuscarInput(inputId, listId, prefix) {
       if (!data.length) { list.innerHTML = '<div class="autocomplete-item" style="color:#8a99b0;">Sin resultados</div>'; list.classList.add('open'); return; }
       list.innerHTML = data.map(d => {
         const partes = d.display_name.split(',');
-        const nombre = partes.slice(0, 2).join(',');
-        const detalle = partes.slice(2, 4).join(',').trim();
-        return `<div class="autocomplete-item" onclick="seleccionarLugar('${inputId}','${listId}','${prefix}',${d.lat},${d.lon},'${d.display_name.replace(/'/g, "\\'")}')">
-          ${nombre}<small>${detalle}</small></div>`;
+        return `<div class="autocomplete-item" onclick="seleccionarLugar('${inputId}','${listId}','${prefix}',${d.lat},${d.lon},'${d.display_name.replace(/'/g,"\\'")}')">
+          ${partes.slice(0,2).join(',')}<small>${partes.slice(2,4).join(',').trim()}</small></div>`;
       }).join('');
       list.classList.add('open');
     } catch(e) {}
@@ -346,8 +370,7 @@ function seleccionarLugar(inputId, listId, prefix, lat, lon, nombre) {
   document.getElementById(inputId).value = '';
   document.getElementById(listId).classList.remove('open');
   document.getElementById(listId).innerHTML = '';
-  const short = nombre.split(',').slice(0, 2).join(',');
-  document.getElementById(prefix + '-loc-texto').textContent = short;
+  document.getElementById(prefix + '-loc-texto').textContent = nombre.split(',').slice(0,2).join(',');
   document.getElementById(prefix + '-loc').classList.add('show');
   map.setView([+lat, +lon], 13);
 }
@@ -360,17 +383,18 @@ function cambiarUbicacion(inputId, listId, locId, prefix) {
 }
 
 /* ── CONTACTOS ── */
-function agregarFilaContacto(containerId, nombre, cargo, tel) {
+function agregarContacto(containerId, nombre, cargo, tel, mail) {
   const div = document.createElement('div');
   div.className = 'contacto-block';
   div.innerHTML = `
+    <button class="btn-rem-c" onclick="this.closest('.contacto-block').remove()" title="Quitar"><i class="ti ti-x"></i></button>
     <div class="c-row">
-      <input type="text" placeholder="Nombre" value="${nombre || ''}"/>
-      <button class="btn-rem-c" onclick="this.closest('.contacto-block').remove()"><i class="ti ti-x"></i></button>
+      <div class="c-field"><span class="c-label">Nombre</span><input type="text" placeholder="Nombre del contacto" value="${nombre||''}"/></div>
+      <div class="c-field"><span class="c-label">Cargo</span><input type="text" placeholder="Cargo" value="${cargo||''}"/></div>
     </div>
     <div class="c-row">
-      <input type="text" placeholder="Cargo" value="${cargo || ''}"/>
-      <input type="text" placeholder="Tel / Email" value="${tel || ''}"/>
+      <div class="c-field"><span class="c-label">Teléfono</span><input type="tel" placeholder="Ej: 11-1234-5678" value="${tel||''}"/></div>
+      <div class="c-field"><span class="c-label">Email</span><input type="email" placeholder="Ej: mail@empresa.com" value="${mail||''}"/></div>
     </div>`;
   document.getElementById(containerId).appendChild(div);
 }
@@ -378,8 +402,8 @@ function agregarFilaContacto(containerId, nombre, cargo, tel) {
 function leerContactos(containerId) {
   return Array.from(document.querySelectorAll('#' + containerId + ' .contacto-block')).map(b => {
     const inp = b.querySelectorAll('input');
-    return {nombre: inp[0].value.trim(), cargo: inp[1].value.trim(), tel: inp[2].value.trim()};
-  }).filter(c => c.nombre || c.tel);
+    return {nombre: inp[0].value.trim(), cargo: inp[1].value.trim(), tel: inp[2].value.trim(), mail: inp[3].value.trim()};
+  }).filter(c => c.nombre || c.tel || c.mail);
 }
 
 /* ── POPUP ── */
@@ -387,44 +411,41 @@ function buildPopup(e) {
   const est = ESTADOS[e.estado];
   const badge = est ? `<span style="background:${est.color};color:${est.text};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">${est.label}</span>` : '';
   const loc = e.ciudad ? `<br/><span style="color:#888;font-size:11px;">${e.ciudad.split(',').slice(0,2).join(',')}</span>` : '';
-  const ct = (e.contactos || []).map(c =>
-    `<div style="margin-top:5px;padding:5px 7px;background:#f4f6f9;border-radius:6px;font-size:11px;">
-      <b style="color:#1a2740;">${c.nombre || '—'}</b>${c.cargo ? ` <span style="color:#888;">· ${c.cargo}</span>` : ''}
-      ${c.tel ? `<br/><span style="color:#555;">${c.tel}</span>` : ''}
+  const ct = (e.contactos||[]).map(c => `
+    <div style="margin-top:5px;padding:5px 7px;background:#f4f6f9;border-radius:6px;font-size:11px;">
+      <b style="color:#1a2740;">${c.nombre||'—'}</b>${c.cargo ? ` <span style="color:#888;">· ${c.cargo}</span>` : ''}
+      ${c.tel  ? `<br/><i style="color:#555;">📞 ${c.tel}</i>`  : ''}
+      ${c.mail ? `<br/><i style="color:#555;">✉ ${c.mail}</i>` : ''}
     </div>`).join('');
-  return `<div style="min-width:170px;max-width:250px;"><b style="font-size:13px;color:#1a2740;">${e.nombre}</b><br/>${badge}${loc}${ct}</div>`;
+  return `<div style="min-width:170px;max-width:260px;"><b style="font-size:13px;color:#1a2740;">${e.nombre}</b><br/>${badge}${loc}${ct}</div>`;
 }
 
 /* ── CRUD ── */
 function _crearYAgregar(datos) {
   const marker = L.marker([datos.lat, datos.lng], {icon: markerIcon(datos.estado)}).addTo(map);
-  marker.bindPopup(buildPopup(datos), {maxWidth: 260});
+  marker.bindPopup(buildPopup(datos), {maxWidth: 270});
   const empresa = {...datos, marker};
   empresas.push(empresa);
   return empresa;
 }
 
-function guardarNueva() { _guardarFormulario('inp', 'inp-contactos'); cerrarSheet(); }
-function guardarNuevaD() { _guardarFormulario('d', 'd-contactos'); }
-
-function _guardarFormulario(prefix, contactosId) {
-  const nombre = document.getElementById(prefix + '-nombre').value.trim();
-  const estado = document.getElementById(prefix + '-estado').value;
+function guardarNueva(prefix, contactosId, locId) {
+  const nombre   = document.getElementById(prefix + '-nombre').value.trim();
+  const estado   = document.getElementById(prefix + '-estado').value;
   const contactos = leerContactos(contactosId);
-  const loc = pending[prefix];
-  if (!loc) { mostrarToast('Seleccioná una ubicación'); return; }
+  const loc      = pending[prefix];
+  if (!loc)    { mostrarToast('Seleccioná una ubicación'); return; }
   if (!nombre) { mostrarToast('Ingresá el nombre'); return; }
   if (!estado) { mostrarToast('Seleccioná un estado'); return; }
   const id = Date.now();
   _crearYAgregar({id, nombre, estado, ciudad: loc.nombre, contactos, lat: loc.lat, lng: loc.lng});
-  guardarLocal();
-  renderLista();
-  // limpiar
+  guardarLocal(); renderLista();
   document.getElementById(prefix + '-nombre').value = '';
   document.getElementById(prefix + '-estado').value = '';
   document.getElementById(contactosId).innerHTML = '';
-  document.getElementById(prefix + '-loc').classList.remove('show');
+  document.getElementById(locId).classList.remove('show');
   delete pending[prefix];
+  cerrarSheet();
   mostrarToast('Empresa guardada');
 }
 
@@ -434,12 +455,11 @@ function eliminarEmpresa(id) {
   if (idx === -1) return;
   map.removeLayer(empresas[idx].marker);
   empresas.splice(idx, 1);
-  guardarLocal();
-  renderLista();
+  guardarLocal(); renderLista();
   mostrarToast('Empresa eliminada');
 }
 
-/* ── MODAL EDICIÓN ── */
+/* ── MODAL ── */
 function abrirModal(id) {
   const e = empresas.find(e => e.id === id);
   if (!e) return;
@@ -447,25 +467,19 @@ function abrirModal(id) {
   document.getElementById('m-nombre').value = e.nombre;
   document.getElementById('m-estado').value = e.estado || '';
   document.getElementById('m-contactos').innerHTML = '';
-  (e.contactos || []).forEach(c => agregarFilaContacto('m-contactos', c.nombre, c.cargo, c.tel));
-  pending['m'] = {lat: e.lat, lng: e.lng, nombre: e.ciudad || ''};
-  document.getElementById('m-loc-texto').textContent = (e.ciudad || '').split(',').slice(0, 2).join(',');
+  (e.contactos||[]).forEach(c => agregarContacto('m-contactos', c.nombre, c.cargo, c.tel, c.mail));
+  pending['m'] = {lat: e.lat, lng: e.lng, nombre: e.ciudad||''};
+  document.getElementById('m-loc-texto').textContent = (e.ciudad||'').split(',').slice(0,2).join(',');
   document.getElementById('m-loc').classList.add('show');
   document.getElementById('m-buscar').value = '';
   document.getElementById('modal').classList.add('open');
 }
-
-function cerrarModal() {
-  document.getElementById('modal').classList.remove('open');
-  modalId = null;
-  delete pending['m'];
-}
-
+function cerrarModal() { document.getElementById('modal').classList.remove('open'); modalId = null; delete pending['m']; }
 function guardarModal() {
-  const nombre = document.getElementById('m-nombre').value.trim();
-  const estado = document.getElementById('m-estado').value;
+  const nombre    = document.getElementById('m-nombre').value.trim();
+  const estado    = document.getElementById('m-estado').value;
   const contactos = leerContactos('m-contactos');
-  const loc = pending['m'];
+  const loc       = pending['m'];
   if (!nombre || !estado) { mostrarToast('Completá nombre y estado'); return; }
   const e = empresas.find(e => e.id === modalId);
   if (!e) return;
@@ -473,33 +487,28 @@ function guardarModal() {
   if (loc) { e.lat = loc.lat; e.lng = loc.lng; e.ciudad = loc.nombre; e.marker.setLatLng([loc.lat, loc.lng]); }
   e.marker.setIcon(markerIcon(e.estado));
   e.marker.setPopupContent(buildPopup(e));
-  guardarLocal();
-  renderLista();
-  cerrarModal();
+  guardarLocal(); renderLista(); cerrarModal();
   mostrarToast('Cambios guardados');
 }
-
 document.getElementById('modal').addEventListener('click', function(ev) { if (ev.target === this) cerrarModal(); });
 
 /* ── LISTA ── */
 function renderLista() {
-  const texto = (val('inp-filtro') || val('d-filtro')).toLowerCase();
-  const estado = val('filtro-estado') || val('d-filtro-estado');
+  const texto  = (gv('inp-filtro') || gv('d-filtro')).toLowerCase();
+  const estado = gv('filtro-estado') || gv('d-filtro-estado');
   const filtradas = empresas.filter(e => {
-    const mt = e.nombre.toLowerCase().includes(texto) ||
-      (e.ciudad || '').toLowerCase().includes(texto) ||
-      (e.contactos || []).some(c => (c.nombre + c.cargo + c.tel).toLowerCase().includes(texto));
+    const mt = e.nombre.toLowerCase().includes(texto) || (e.ciudad||'').toLowerCase().includes(texto) ||
+      (e.contactos||[]).some(c => (c.nombre+c.cargo+c.tel+c.mail).toLowerCase().includes(texto));
     return mt && (!estado || e.estado === estado);
   });
   const count = empresas.length;
-  setVal('contador', count);
-  document.getElementById('header-count').textContent = count + ' empresa' + (count !== 1 ? 's' : '');
+  sv('contador', count);
+  document.getElementById('header-count').textContent = count + (count !== 1 ? ' empresas' : ' empresa');
   const html = filtradas.length ? filtradas.map(e => {
-    const est = ESTADOS[e.estado] || {label: '—', color: '#ccc', text: '#555'};
-    const ct = (e.contactos || []).slice(0, 2).map(c =>
-      `<div>${c.nombre}${c.cargo ? ' · ' + c.cargo : ''}${c.tel ? ' — ' + c.tel : ''}</div>`).join('');
-    const mas = (e.contactos || []).length > 2 ? `<div style="color:#8a99b0;">+${e.contactos.length - 2} más</div>` : '';
-    const loc = e.ciudad ? e.ciudad.split(',').slice(0, 2).join(',') : '';
+    const est = ESTADOS[e.estado] || {label:'—', color:'#ccc', text:'#555'};
+    const ct = (e.contactos||[]).slice(0,2).map(c => `<div>${c.nombre}${c.cargo?' · '+c.cargo:''}${c.tel?' 📞'+c.tel:''}${c.mail?' ✉'+c.mail:''}</div>`).join('');
+    const mas = (e.contactos||[]).length > 2 ? `<div style="color:#8a99b0;">+${e.contactos.length-2} más</div>` : '';
+    const loc = e.ciudad ? e.ciudad.split(',').slice(0,2).join(',') : '';
     return `<div class="empresa-card" style="border-left-color:${est.color};">
       <div class="ec-nombre">${e.nombre}</div>
       <span class="ec-badge" style="background:${est.color};color:${est.text};">${est.label}</span>
@@ -512,7 +521,7 @@ function renderLista() {
       </div>
     </div>`;
   }).join('') : '<div class="empty-msg">Sin resultados</div>';
-  ['lista-empresas', 'd-lista-empresas'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
+  ['lista-empresas','d-lista-empresas'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
 }
 
 function centrarEn(id) {
@@ -524,28 +533,21 @@ function centrarEn(id) {
 }
 
 /* ── SHEETS / TABS ── */
-function abrirSheet(cual) {
-  cerrarSheet();
-  document.getElementById('sheet-overlay').classList.add('open');
-  document.getElementById('sheet-' + cual).classList.add('open');
-}
-function cerrarSheet() {
-  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
-  document.getElementById('sheet-overlay').classList.remove('open');
-}
+function abrirSheet(cual) { cerrarSheet(); document.getElementById('sheet-overlay').classList.add('open'); document.getElementById('sheet-'+cual).classList.add('open'); }
+function cerrarSheet() { document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open')); document.getElementById('sheet-overlay').classList.remove('open'); }
 function desktopTab(tab, btn) {
   document.querySelectorAll('.desktop-panel .tabs button').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.desktop-panel .tab-content').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('dtab-' + tab).classList.add('active');
+  document.getElementById('dtab-'+tab).classList.add('active');
 }
 
-/* ── STORAGE ── */
+/* ── STORAGE LOCAL ── */
 function guardarLocal() {
-  const datos = empresas.map(({id, nombre, estado, ciudad, contactos, lat, lng}) => ({id, nombre, estado, ciudad, contactos, lat, lng}));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(
+    empresas.map(({id,nombre,estado,ciudad,contactos,lat,lng}) => ({id,nombre,estado,ciudad,contactos,lat,lng}))
+  ));
 }
-
 function cargarLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -555,235 +557,165 @@ function cargarLocal() {
   } catch(e) {}
 }
 
-/* ── EXPORTAR / IMPORTAR ── */
-function exportarDatos() {
+/* ── EXPORTAR EXCEL (.xlsx) ── */
+function exportarExcel() {
   if (!empresas.length) { mostrarToast('No hay empresas para exportar'); return; }
-  const datos = empresas.map(({id, nombre, estado, ciudad, contactos, lat, lng}) => ({id, nombre, estado, ciudad, contactos, lat, lng}));
-  const blob = new Blob([JSON.stringify({version: 1, exportado: new Date().toISOString(), empresas: datos}, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'empresas-' + new Date().toISOString().slice(0, 10) + '.json';
-  a.click();
-  mostrarToast('Datos exportados');
+  const encabezado = ['Empresa','Estado','Ubicacion','Contacto','Cargo','Telefono','Email'];
+  const filas = [encabezado];
+  empresas.forEach(e => {
+    const est = (ESTADOS[e.estado] || {label: e.estado || ''}).label;
+    const loc = (e.ciudad||'').split(',').slice(0,3).join(',').trim();
+    if (!e.contactos || !e.contactos.length) {
+      filas.push([e.nombre, est, loc, '', '', '', '']);
+    } else {
+      e.contactos.forEach(c => filas.push([e.nombre, est, loc, c.nombre||'', c.cargo||'', c.tel||'', c.mail||'']));
+    }
+  });
+  const ws = XLSX.utils.aoa_to_sheet(filas);
+  // Ancho de columnas
+  ws['!cols'] = [20,32,30,22,18,18,28].map(w => ({wch: w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Empresas');
+  XLSX.writeFile(wb, 'empresas-' + new Date().toISOString().slice(0,10) + '.xlsx');
+  mostrarToast('Excel descargado');
 }
 
-function importarDatos(event) {
+/* ── IMPORTAR EXCEL / CSV ── */
+function importarExcel(event) {
   const file = event.target.files[0];
   if (!file) return;
+  const esXlsx = /\.(xlsx|xls)$/i.test(file.name);
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      let filas = [];
+      if (esXlsx) {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        filas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:''});
+      } else {
+        filas = e.target.result.split(/\r?\n/).map(line => {
+          const cols = []; let cur = '', inQ = false;
+          for (const ch of line) {
+            if (ch === '"') inQ = !inQ;
+            else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+            else cur += ch;
+          }
+          cols.push(cur.trim()); return cols;
+        }).filter(r => r.some(c => c !== ''));
+      }
+      if (filas.length < 2) { mostrarToast('El archivo no tiene datos'); event.target.value=''; return; }
+      const primera = filas[0].map(c => String(c).toLowerCase());
+      const datos = (primera.includes('empresa')||primera.includes('nombre')||primera.includes('estado')) ? filas.slice(1) : filas;
+
+      // Agrupar por empresa — columnas: 0=Empresa,1=Estado,2=Ubicacion,3=Contacto,4=Cargo,5=Telefono,6=Email
+      const grupos = {};
+      datos.forEach(row => {
+        const nom = String(row[0]||'').trim(); if (!nom) return;
+        if (!grupos[nom]) {
+          grupos[nom] = {
+            nombre: nom,
+            estado: MAPA_ESTADOS[String(row[1]||'').trim().toLowerCase()] || 'prospecto',
+            ciudad: String(row[2]||'').trim(),
+            contactos: []
+          };
+        }
+        const cNom  = String(row[3]||'').trim();
+        const cargo = String(row[4]||'').trim();
+        const tel   = String(row[5]||'').trim();
+        const mail  = String(row[6]||'').trim();
+        if (cNom || tel || mail) grupos[nom].contactos.push({nombre:cNom, cargo, tel, mail});
+      });
+
+      const delExcel = Object.values(grupos);
+      if (!delExcel.length) { mostrarToast('No se encontraron datos válidos'); event.target.value=''; return; }
+
+      mostrarToast('Procesando ' + delExcel.length + ' empresas...');
+      let actualizadas = 0, agregadas = 0, sinUbicacion = 0;
+
+      for (const emp of delExcel) {
+        const idx = empresas.findIndex(ex => ex.nombre.toLowerCase().trim() === emp.nombre.toLowerCase().trim());
+        if (idx !== -1) {
+          // Actualizar existente
+          const ex = empresas[idx];
+          const ciudadCambio = emp.ciudad && emp.ciudad !== ex.ciudad;
+          let lat = ex.lat, lng = ex.lng;
+          if (ciudadCambio) {
+            try {
+              const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=ar&q='+encodeURIComponent(emp.ciudad)+'&limit=1');
+              const geo = await r.json();
+              if (geo.length) { lat = +geo[0].lat; lng = +geo[0].lon; }
+            } catch(err) {}
+            await new Promise(res => setTimeout(res, 300));
+          }
+          Object.assign(ex, {nombre:emp.nombre, estado:emp.estado, ciudad:emp.ciudad||ex.ciudad, contactos:emp.contactos, lat, lng});
+          ex.marker.setLatLng([lat, lng]);
+          ex.marker.setIcon(markerIcon(ex.estado));
+          ex.marker.setPopupContent(buildPopup(ex));
+          actualizadas++;
+        } else {
+          // Agregar nueva
+          let lat, lng;
+          if (emp.ciudad) {
+            try {
+              const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=ar&q='+encodeURIComponent(emp.ciudad)+'&limit=1');
+              const geo = await r.json();
+              if (geo.length) { lat = +geo[0].lat; lng = +geo[0].lon; }
+            } catch(err) {}
+            await new Promise(res => setTimeout(res, 300));
+          }
+          if (!lat) { lat = -38.5+(Math.random()-0.5)*10; lng = -63.5+(Math.random()-0.5)*20; sinUbicacion++; }
+          _crearYAgregar({...emp, id: Date.now()+Math.floor(Math.random()*100000), lat, lng});
+          agregadas++;
+        }
+      }
+      guardarLocal(); renderLista();
+      const partes = [];
+      if (actualizadas) partes.push(actualizadas + ' actualizada' + (actualizadas!==1?'s':''));
+      if (agregadas)    partes.push(agregadas    + ' nueva'       + (agregadas!==1?'s':''));
+      if (sinUbicacion) partes.push(sinUbicacion + ' sin ubicación exacta');
+      mostrarToast(partes.join(' · ') || 'Sin cambios');
+    } catch(err) { mostrarToast('Error al leer el archivo'); console.error(err); }
+    event.target.value = '';
+  };
+  esXlsx ? reader.readAsArrayBuffer(file) : reader.readAsText(file, 'UTF-8');
+}
+
+/* ── BACKUP / RESTORE JSON ── */
+function exportarJSON() {
+  if (!empresas.length) { mostrarToast('No hay datos para exportar'); return; }
+  const datos = empresas.map(({id,nombre,estado,ciudad,contactos,lat,lng}) => ({id,nombre,estado,ciudad,contactos,lat,lng}));
+  const blob = new Blob([JSON.stringify({version:1, exportado:new Date().toISOString(), empresas:datos}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'backup-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  mostrarToast('Backup descargado');
+}
+function importarJSON(event) {
+  const file = event.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const parsed = JSON.parse(e.target.result);
       const lista = parsed.empresas || parsed;
       if (!Array.isArray(lista)) throw new Error();
-      if (!confirm(`Importar ${lista.length} empresas? Los datos actuales se van a combinar (no se borran).`)) return;
+      if (!confirm(`Importar ${lista.length} empresas? Se combinan sin borrar las existentes.`)) return;
       const idsExistentes = new Set(empresas.map(e => e.id));
-      let importadas = 0;
-      lista.forEach(emp => {
-        if (!idsExistentes.has(emp.id)) {
-          _crearYAgregar(emp);
-          importadas++;
-        }
-      });
-      guardarLocal();
-      renderLista();
-      mostrarToast(`${importadas} empresas importadas`);
-    } catch {
-      mostrarToast('Archivo inválido');
-    }
+      let imp = 0;
+      lista.forEach(emp => { if (!idsExistentes.has(emp.id)) { _crearYAgregar(emp); imp++; } });
+      guardarLocal(); renderLista();
+      mostrarToast(imp + ' empresa' + (imp!==1?'s':'') + ' importada' + (imp!==1?'s':''));
+    } catch { mostrarToast('Archivo inválido'); }
     event.target.value = '';
   };
-  reader.readAsText(file);
+  reader.readAsText(file, 'UTF-8');
 }
 
 /* ── HELPERS ── */
-function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
-function setVal(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
-
+function gv(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function sv(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
 let toastTimer;
 function mostrarToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-
-
-/* ── IMPORTAR EXCEL / CSV ── */
-function importarExcel(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const nombre = file.name.toLowerCase();
-  const reader = new FileReader();
-
-  reader.onload = async function(e) {
-    try {
-      let filas = [];
-
-      if (nombre.endsWith('.xlsx') || nombre.endsWith('.xls')) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        filas = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ''});
-      } else {
-        const text = e.target.result;
-        filas = text.split(/\r?\n/).map(line => {
-          const cols = [];
-          let current = '', inQuotes = false;
-          for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
-            if (ch === '"') { inQuotes = !inQuotes; }
-            else if (ch === ',' && !inQuotes) { cols.push(current.trim()); current = ''; }
-            else { current += ch; }
-          }
-          cols.push(current.trim());
-          return cols;
-        }).filter(r => r.some(c => c !== ''));
-      }
-
-      if (filas.length < 2) { mostrarToast('El archivo está vacío o no tiene datos'); return; }
-
-      const primera = filas[0].map(c => String(c).toLowerCase());
-      const tieneEncabezado = primera.includes('empresa') || primera.includes('nombre') || primera.includes('estado');
-      const datos = tieneEncabezado ? filas.slice(1) : filas;
-
-      const mapaEstados = {
-        'op con facturación': 'facturacion', 'op con facturacion': 'facturacion', 'facturación': 'facturacion', 'facturacion': 'facturacion',
-        'op con migración de base final': 'migracion-final', 'op migración base final': 'migracion-final', 'migracion-final': 'migracion-final',
-        'op en vía de migración': 'migracion-via', 'op en via de migracion': 'migracion-via', 'migracion-via': 'migracion-via',
-        'op confirmados en pre implementación': 'pre-impl', 'op pre implementación': 'pre-impl', 'pre-impl': 'pre-impl', 'pre implementacion': 'pre-impl',
-        'prospectos interesados, en seguimiento': 'prospecto', 'prospectos en seguimiento': 'prospecto', 'prospecto': 'prospecto',
-        'op no interesados': 'no-interesado', 'no interesados': 'no-interesado', 'no-interesado': 'no-interesado',
-        'op especiales': 'especial', 'especial': 'especial', 'especiales': 'especial',
-        'op a reconectar': 'reconectar', 'reconectar': 'reconectar',
-      };
-
-      // Agrupar filas por nombre de empresa
-      const grupos = {};
-      datos.forEach(row => {
-        const nombreEmp = String(row[0] || '').trim();
-        if (!nombreEmp) return;
-        if (!grupos[nombreEmp]) {
-          const estadoRaw = String(row[1] || '').trim().toLowerCase();
-          grupos[nombreEmp] = {
-            nombre: nombreEmp,
-            estado: mapaEstados[estadoRaw] || 'prospecto',
-            ciudad: String(row[2] || '').trim(),
-            contactos: []
-          };
-        }
-        const contactoNombre = String(row[3] || '').trim();
-        const cargo          = String(row[4] || '').trim();
-        const tel            = String(row[5] || '').trim();
-        if (contactoNombre || tel) {
-          grupos[nombreEmp].contactos.push({nombre: contactoNombre, cargo, tel});
-        }
-      });
-
-      const delExcel = Object.values(grupos);
-      if (!delExcel.length) { mostrarToast('No se encontraron datos válidos'); event.target.value = ''; return; }
-
-      mostrarToast('Procesando ' + delExcel.length + ' empresas...');
-
-      let actualizadas = 0, agregadas = 0, sinUbicacion = 0;
-
-      for (const emp of delExcel) {
-        const idx = empresas.findIndex(e => e.nombre.toLowerCase().trim() === emp.nombre.toLowerCase().trim());
-
-        if (idx !== -1) {
-          // ── EXISTE → actualizar datos, conservar ubicación si la ciudad no cambió ──
-          const existente = empresas[idx];
-          const ciudadCambio = emp.ciudad && emp.ciudad !== existente.ciudad;
-          let lat = existente.lat, lng = existente.lng;
-
-          if (ciudadCambio) {
-            try {
-              const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=ar&q=' + encodeURIComponent(emp.ciudad) + '&limit=1');
-              const geo = await r.json();
-              if (geo.length) { lat = +geo[0].lat; lng = +geo[0].lon; }
-            } catch(err) {}
-            await new Promise(res => setTimeout(res, 300));
-          }
-
-          existente.nombre    = emp.nombre;
-          existente.estado    = emp.estado;
-          existente.ciudad    = emp.ciudad || existente.ciudad;
-          existente.contactos = emp.contactos;
-          existente.lat       = lat;
-          existente.lng       = lng;
-          existente.marker.setLatLng([lat, lng]);
-          existente.marker.setIcon(markerIcon(existente.estado));
-          existente.marker.setPopupContent(buildPopup(existente));
-          actualizadas++;
-
-        } else {
-          // ── NO EXISTE → geolocalizar y agregar ──
-          let lat, lng;
-          if (emp.ciudad) {
-            try {
-              const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=ar&q=' + encodeURIComponent(emp.ciudad) + '&limit=1');
-              const geo = await r.json();
-              if (geo.length) { lat = +geo[0].lat; lng = +geo[0].lon; }
-            } catch(err) {}
-            await new Promise(res => setTimeout(res, 300));
-          }
-          if (!lat) { lat = -38.5 + (Math.random() - 0.5) * 10; lng = -63.5 + (Math.random() - 0.5) * 20; sinUbicacion++; }
-          const id = Date.now() + Math.floor(Math.random() * 100000);
-          _crearYAgregar({...emp, id, lat, lng});
-          agregadas++;
-        }
-      }
-
-      guardarLocal();
-      renderLista();
-
-      const partes = [];
-      if (actualizadas) partes.push(actualizadas + ' actualizada' + (actualizadas !== 1 ? 's' : ''));
-      if (agregadas)    partes.push(agregadas    + ' nueva'       + (agregadas    !== 1 ? 's' : ''));
-      if (sinUbicacion) partes.push(sinUbicacion + ' sin ubicación exacta');
-      mostrarToast(partes.join(' · '));
-
-    } catch(err) {
-      mostrarToast('Error al leer el archivo');
-      console.error(err);
-    }
-    event.target.value = '';
-  };
-
-  if (nombre.endsWith('.xlsx') || nombre.endsWith('.xls')) {
-    reader.readAsArrayBuffer(file);
-  } else {
-    reader.readAsText(file, 'UTF-8');
-  }
-}
-
-/* ── EXPORTAR EXCEL ── */
-function exportarExcel() {
-  if (!empresas.length) { mostrarToast('No hay empresas para exportar'); return; }
-  const filas = [];
-  empresas.forEach(e => {
-    const est = (ESTADOS[e.estado] || {label: e.estado || '—'}).label;
-    const loc = (e.ciudad || '').split(',').slice(0, 3).join(',').trim();
-    if (!e.contactos || !e.contactos.length) {
-      filas.push([e.nombre, est, loc, '', '', '']);
-    } else {
-      e.contactos.forEach(c => {
-        filas.push([e.nombre, est, loc, c.nombre || '', c.cargo || '', c.tel || '']);
-      });
-    }
-  });
-  const encabezado = ['Empresa','Estado','Ubicacion','Contacto','Cargo','Tel/Email'];
-  const csvContent = [encabezado, ...filas]
-    .map(row => row.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','))
-    .join('\r\n');
-  const blob = new Blob(['\uFEFF' + csvContent], {type: 'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'empresas-' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-  mostrarToast('Archivo descargado — abrilo con Excel');
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
 initMap();
