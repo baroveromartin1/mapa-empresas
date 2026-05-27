@@ -94,6 +94,32 @@ button.btn-sec:active{background:#f0f4f8;}
 .empresa-card .ec-actions button:active{background:#f0f4f8;}
 .empresa-card .ec-actions .btn-del{color:#c0392b;border-color:#f5c6c6;}
 .empty-msg{text-align:center;color:#8a99b0;font-size:13px;padding:24px 0;}
+/* Grupos casa central / sucursales */
+.grupo-empresa{margin-bottom:10px;}
+.grupo-header{background:#fff;border:1px solid #dce3ed;border-radius:10px;padding:10px 12px;border-left:4px solid #ccc;cursor:pointer;}
+.grupo-header .gh-top{display:flex;align-items:center;gap:8px;}
+.grupo-header .gh-nombre{font-weight:600;font-size:13px;color:#1a2740;flex:1;}
+.grupo-header .gh-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.grupo-header .gh-ciudad{font-size:11px;color:#8a99b0;margin-top:2px;}
+.grupo-header .gh-actions{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.grupo-header .gh-actions button{padding:5px 10px;border:1px solid #dce3ed;border-radius:7px;background:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;color:#2c3e50;}
+.grupo-header .gh-actions button:active{background:#f0f4f8;}
+.grupo-header .gh-actions .btn-del{color:#c0392b;border-color:#f5c6c6;}
+.grupo-header .gh-toggle{font-size:13px;color:#8a99b0;transition:transform 0.2s;}
+.grupo-header .gh-toggle.open{transform:rotate(180deg);}
+.sucursales-wrap{display:none;padding-left:14px;margin-top:4px;}
+.sucursales-wrap.open{display:block;}
+.sucursal-card{background:#f9fafc;border:1px solid #dce3ed;border-radius:9px;padding:9px 11px;border-left:3px solid #ccc;margin-bottom:5px;}
+.sucursal-card .sc-nombre{font-size:12px;font-weight:500;color:#1a2740;}
+.sucursal-card .sc-badge{font-size:10px;padding:1px 7px;border-radius:10px;font-weight:500;}
+.sucursal-card .sc-ciudad{font-size:10px;color:#8a99b0;margin-top:2px;}
+.sucursal-card .sc-contactos{font-size:10px;color:#5a6a85;margin-top:3px;}
+.sucursal-card .sc-actions{display:flex;gap:4px;margin-top:6px;}
+.sucursal-card .sc-actions button{padding:4px 8px;border:1px solid #dce3ed;border-radius:6px;background:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;gap:3px;color:#2c3e50;}
+.sucursal-card .sc-actions .btn-del{color:#c0392b;border-color:#f5c6c6;}
+.tipo-selector{display:flex;gap:6px;margin-bottom:0;}
+.tipo-btn{flex:1;padding:8px;border:1px solid #dce3ed;border-radius:8px;background:#f9fafc;font-size:12px;cursor:pointer;text-align:center;color:#5a6a85;transition:all 0.15s;}
+.tipo-btn.active{background:#1a2740;color:#fff;border-color:#1a2740;}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.open{display:flex;}
 .modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;}
@@ -148,6 +174,15 @@ button.btn-sec:active{background:#f0f4f8;}
     <button onclick="cerrarSheet()"><i class="ti ti-x"></i></button>
   </div>
   <div class="sheet-body">
+    <label>Tipo</label>
+    <div class="tipo-selector">
+      <div class="tipo-btn active" id="inp-tipo-cc" onclick="setTipo('inp','cc')">🏢 Casa Central</div>
+      <div class="tipo-btn" id="inp-tipo-suc" onclick="setTipo('inp','suc')">🏪 Sucursal</div>
+    </div>
+    <div id="inp-madre-wrap" style="display:none;margin-top:6px;">
+      <label style="margin-top:0;">Empresa madre</label>
+      <select id="inp-madre"><option value="">— Seleccioná empresa —</option></select>
+    </div>
     <label>Buscar ubicación</label>
     <div class="autocomplete-wrap">
       <input type="text" id="inp-buscar" placeholder="Ej: Córdoba, Mendoza..." autocomplete="off" oninput="onBuscarInput('inp-buscar','inp-ac','inp')"/>
@@ -157,7 +192,7 @@ button.btn-sec:active{background:#f0f4f8;}
       <i class="ti ti-map-pin"></i><span id="inp-loc-texto"></span>
       <span class="loc-change" onclick="cambiarUbicacion('inp-buscar','inp-ac','inp-loc','inp')">Cambiar</span>
     </div>
-    <label>Nombre de la empresa</label>
+    <label>Nombre de la empresa / sucursal</label>
     <input type="text" id="inp-nombre" placeholder="Ej: Telecom SA"/>
     <label>Estado</label>
     <select id="inp-estado">
@@ -214,6 +249,15 @@ button.btn-sec:active{background:#f0f4f8;}
     <button onclick="desktopTab('lista',this)"><i class="ti ti-list"></i> Empresas</button>
   </div>
   <div class="tab-content active" id="dtab-nueva">
+    <label>Tipo</label>
+    <div class="tipo-selector">
+      <div class="tipo-btn active" id="d-tipo-cc" onclick="setTipo('d','cc')">🏢 Casa Central</div>
+      <div class="tipo-btn" id="d-tipo-suc" onclick="setTipo('d','suc')">🏪 Sucursal</div>
+    </div>
+    <div id="d-madre-wrap" style="display:none;margin-top:6px;">
+      <label style="margin-top:0;">Empresa madre</label>
+      <select id="d-madre"><option value="">— Seleccioná empresa —</option></select>
+    </div>
     <label>Buscar ubicación</label>
     <div class="autocomplete-wrap">
       <input type="text" id="d-buscar" placeholder="Ej: Rosario, Salta..." autocomplete="off" oninput="onBuscarInput('d-buscar','d-ac','d')"/>
@@ -223,7 +267,7 @@ button.btn-sec:active{background:#f0f4f8;}
       <i class="ti ti-map-pin"></i><span id="d-loc-texto"></span>
       <span class="loc-change" onclick="cambiarUbicacion('d-buscar','d-ac','d-loc','d')">Cambiar</span>
     </div>
-    <label>Nombre de la empresa</label>
+    <label>Nombre de la empresa / sucursal</label>
     <input type="text" id="d-nombre" placeholder="Ej: Telecom SA"/>
     <label>Estado</label>
     <select id="d-estado">
@@ -273,6 +317,15 @@ button.btn-sec:active{background:#f0f4f8;}
     <div class="location-selected" id="m-loc">
       <i class="ti ti-map-pin"></i><span id="m-loc-texto"></span>
       <span class="loc-change" onclick="cambiarUbicacion('m-buscar','m-ac','m-loc','m')">Cambiar</span>
+    </div>
+    <label>Tipo</label>
+    <div class="tipo-selector">
+      <div class="tipo-btn active" id="m-tipo-cc" onclick="setTipo('m','cc')">🏢 Casa Central</div>
+      <div class="tipo-btn" id="m-tipo-suc" onclick="setTipo('m','suc')">🏪 Sucursal</div>
+    </div>
+    <div id="m-madre-wrap" style="display:none;margin-top:6px;">
+      <label style="margin-top:0;">Empresa madre</label>
+      <select id="m-madre"><option value="">— Seleccioná empresa —</option></select>
     </div>
     <label>Nombre</label>
     <input type="text" id="m-nombre"/>
@@ -339,9 +392,14 @@ function initMap() {
   L.control.zoom({position: 'bottomright'}).addTo(map);
 }
 
-function markerIcon(estado) {
+function markerIcon(estado, tipo) {
   const c = (ESTADOS[estado] || {color: '#aaa'}).color;
-  return L.divIcon({className: '', html: `<div style="width:24px;height:24px;border-radius:50%;background:${c};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>`, iconAnchor: [12, 12]});
+  if (tipo === 'suc') {
+    // Sucursal: circulo mas chico
+    return L.divIcon({className: '', html: `<div style="width:16px;height:16px;border-radius:50%;background:${c};border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.4);cursor:pointer;"></div>`, iconAnchor: [8, 8]});
+  }
+  // Casa central: cuadrado con bordes redondeados
+  return L.divIcon({className: '', html: `<div style="width:22px;height:22px;border-radius:5px;background:${c};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>`, iconAnchor: [11, 11]});
 }
 
 /* ── AUTOCOMPLETE ── */
@@ -410,6 +468,7 @@ function leerContactos(containerId) {
 function buildPopup(e) {
   const est = ESTADOS[e.estado];
   const badge = est ? `<span style="background:${est.color};color:${est.text};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">${est.label}</span>` : '';
+  const tipoLabel = e.tipo === 'suc' ? '🏪 Sucursal' : '🏢 Casa Central';
   const loc = e.ciudad ? `<br/><span style="color:#888;font-size:11px;">${e.ciudad.split(',').slice(0,2).join(',')}</span>` : '';
   const ct = (e.contactos||[]).map(c => `
     <div style="margin-top:5px;padding:5px 7px;background:#f4f6f9;border-radius:6px;font-size:11px;">
@@ -417,36 +476,63 @@ function buildPopup(e) {
       ${c.tel  ? `<br/><i style="color:#555;">📞 ${c.tel}</i>`  : ''}
       ${c.mail ? `<br/><i style="color:#555;">✉ ${c.mail}</i>` : ''}
     </div>`).join('');
-  return `<div style="min-width:170px;max-width:260px;"><b style="font-size:13px;color:#1a2740;">${e.nombre}</b><br/>${badge}${loc}${ct}</div>`;
+  return `<div style="min-width:170px;max-width:260px;"><b style="font-size:13px;color:#1a2740;">${e.nombre}</b><br/><span style="font-size:10px;color:#8a99b0;">${tipoLabel}</span><br/>${badge}${loc}${ct}</div>`;
 }
 
 /* ── CRUD ── */
 function _crearYAgregar(datos) {
-  const marker = L.marker([datos.lat, datos.lng], {icon: markerIcon(datos.estado)}).addTo(map);
+  const marker = L.marker([datos.lat, datos.lng], {icon: markerIcon(datos.estado, datos.tipo)}).addTo(map);
   marker.bindPopup(buildPopup(datos), {maxWidth: 270});
   const empresa = {...datos, marker};
   empresas.push(empresa);
   return empresa;
 }
 
+function setTipo(prefix, tipo) {
+  const ccBtn  = document.getElementById(prefix + '-tipo-cc');
+  const sucBtn = document.getElementById(prefix + '-tipo-suc');
+  const wrap   = document.getElementById(prefix + '-madre-wrap');
+  ccBtn.classList.toggle('active', tipo === 'cc');
+  sucBtn.classList.toggle('active', tipo === 'suc');
+  wrap.style.display = tipo === 'suc' ? 'block' : 'none';
+  if (tipo === 'suc') actualizarSelectMadre(prefix);
+}
+
+function actualizarSelectMadre(prefix) {
+  const sel = document.getElementById(prefix + '-madre');
+  const actual = sel.value;
+  const casas = empresas.filter(e => e.tipo !== 'suc');
+  sel.innerHTML = '<option value="">— Seleccioná empresa —</option>' +
+    casas.map(e => `<option value="${e.id}" ${e.id == actual ? 'selected' : ''}>${e.nombre}</option>`).join('');
+}
+
+function getTipo(prefix) {
+  return document.getElementById(prefix + '-tipo-suc').classList.contains('active') ? 'suc' : 'cc';
+}
+
 function guardarNueva(prefix, contactosId, locId) {
-  const nombre   = document.getElementById(prefix + '-nombre').value.trim();
-  const estado   = document.getElementById(prefix + '-estado').value;
+  const nombre    = document.getElementById(prefix + '-nombre').value.trim();
+  const estado    = document.getElementById(prefix + '-estado').value;
   const contactos = leerContactos(contactosId);
-  const loc      = pending[prefix];
+  const loc       = pending[prefix];
+  const tipo      = getTipo(prefix);
+  const madre     = tipo === 'suc' ? document.getElementById(prefix + '-madre').value : null;
   if (!loc)    { mostrarToast('Seleccioná una ubicación'); return; }
   if (!nombre) { mostrarToast('Ingresá el nombre'); return; }
   if (!estado) { mostrarToast('Seleccioná un estado'); return; }
+  if (tipo === 'suc' && !madre) { mostrarToast('Seleccioná la empresa madre'); return; }
   const id = Date.now();
-  _crearYAgregar({id, nombre, estado, ciudad: loc.nombre, contactos, lat: loc.lat, lng: loc.lng});
+  _crearYAgregar({id, nombre, estado, tipo, madre, ciudad: loc.nombre, contactos, lat: loc.lat, lng: loc.lng});
   guardarSheets(); renderLista();
   document.getElementById(prefix + '-nombre').value = '';
   document.getElementById(prefix + '-estado').value = '';
   document.getElementById(contactosId).innerHTML = '';
   document.getElementById(locId).classList.remove('show');
+  // reset tipo
+  setTipo(prefix, 'cc');
   delete pending[prefix];
   cerrarSheet();
-  mostrarToast('Empresa guardada');
+  mostrarToast('Guardado');
 }
 
 function eliminarEmpresa(id) {
@@ -472,6 +558,13 @@ function abrirModal(id) {
   document.getElementById('m-loc-texto').textContent = (e.ciudad||'').split(',').slice(0,2).join(',');
   document.getElementById('m-loc').classList.add('show');
   document.getElementById('m-buscar').value = '';
+  // restore tipo
+  const tipoActual = e.tipo || 'cc';
+  setTipo('m', tipoActual);
+  if (tipoActual === 'suc') {
+    actualizarSelectMadre('m');
+    if (e.madre) document.getElementById('m-madre').value = e.madre;
+  }
   document.getElementById('modal').classList.add('open');
 }
 function cerrarModal() { document.getElementById('modal').classList.remove('open'); modalId = null; delete pending['m']; }
@@ -480,48 +573,130 @@ function guardarModal() {
   const estado    = document.getElementById('m-estado').value;
   const contactos = leerContactos('m-contactos');
   const loc       = pending['m'];
+  const tipo      = getTipo('m');
+  const madre     = tipo === 'suc' ? document.getElementById('m-madre').value : null;
   if (!nombre || !estado) { mostrarToast('Completá nombre y estado'); return; }
   const e = empresas.find(e => e.id === modalId);
   if (!e) return;
-  Object.assign(e, {nombre, estado, contactos});
+  Object.assign(e, {nombre, estado, contactos, tipo, madre});
   if (loc) { e.lat = loc.lat; e.lng = loc.lng; e.ciudad = loc.nombre; e.marker.setLatLng([loc.lat, loc.lng]); }
-  e.marker.setIcon(markerIcon(e.estado));
+  e.marker.setIcon(markerIcon(e.estado, e.tipo));
   e.marker.setPopupContent(buildPopup(e));
   guardarSheets(); renderLista(); cerrarModal();
   mostrarToast('Cambios guardados');
 }
 document.getElementById('modal').addEventListener('click', function(ev) { if (ev.target === this) cerrarModal(); });
 
-/* ── LISTA ── */
+/* ── LISTA AGRUPADA ── */
+function cardContactos(e, cls) {
+  const est = ESTADOS[e.estado] || {label:'—', color:'#ccc', text:'#555'};
+  const ct  = (e.contactos||[]).slice(0,2).map(c => `<div>${c.nombre}${c.cargo?' · '+c.cargo:''}${c.tel?' 📞'+c.tel:''}${c.mail?' ✉'+c.mail:''}</div>`).join('');
+  const mas = (e.contactos||[]).length > 2 ? `<div style="color:#8a99b0;">+${e.contactos.length-2} más</div>` : '';
+  const loc = e.ciudad ? e.ciudad.split(',').slice(0,2).join(',') : '';
+  return {est, ct, mas, loc};
+}
+
 function renderLista() {
   const texto  = (gv('inp-filtro') || gv('d-filtro')).toLowerCase();
   const estado = gv('filtro-estado') || gv('d-filtro-estado');
-  const filtradas = empresas.filter(e => {
+
+  const match = e => {
     const mt = e.nombre.toLowerCase().includes(texto) || (e.ciudad||'').toLowerCase().includes(texto) ||
       (e.contactos||[]).some(c => (c.nombre+c.cargo+c.tel+c.mail).toLowerCase().includes(texto));
     return mt && (!estado || e.estado === estado);
-  });
+  };
+
   const count = empresas.length;
   sv('contador', count);
   document.getElementById('header-count').textContent = count + (count !== 1 ? ' empresas' : ' empresa');
-  const html = filtradas.length ? filtradas.map(e => {
-    const est = ESTADOS[e.estado] || {label:'—', color:'#ccc', text:'#555'};
-    const ct = (e.contactos||[]).slice(0,2).map(c => `<div>${c.nombre}${c.cargo?' · '+c.cargo:''}${c.tel?' 📞'+c.tel:''}${c.mail?' ✉'+c.mail:''}</div>`).join('');
-    const mas = (e.contactos||[]).length > 2 ? `<div style="color:#8a99b0;">+${e.contactos.length-2} más</div>` : '';
-    const loc = e.ciudad ? e.ciudad.split(',').slice(0,2).join(',') : '';
-    return `<div class="empresa-card" style="border-left-color:${est.color};">
-      <div class="ec-nombre">${e.nombre}</div>
+
+  // Separar casas centrales y sucursales
+  const casas = empresas.filter(e => e.tipo !== 'suc');
+  const sucursales = empresas.filter(e => e.tipo === 'suc');
+
+  // Empresas sin casa central (sueltas)
+  const sueltas = sucursales.filter(s => !casas.find(c => String(c.id) === String(s.madre)));
+
+  let html = '';
+
+  // Grupos: casa central + sus sucursales
+  casas.forEach(cc => {
+    const hijos = sucursales.filter(s => String(s.madre) === String(cc.id));
+    const ccMatch  = match(cc);
+    const hijosMatch = hijos.filter(match);
+    if (!ccMatch && !hijosMatch.length) return;
+
+    const {est, ct, mas, loc} = cardContactos(cc);
+    const haySuc = hijos.length > 0;
+    const grupoId = 'g' + cc.id;
+
+    html += `<div class="grupo-empresa">
+      <div class="grupo-header" style="border-left-color:${est.color};" ${haySuc ? `onclick="toggleGrupo('${grupoId}')"` : ''}>
+        <div class="gh-top">
+          <span style="font-size:16px;">🏢</span>
+          <span class="gh-nombre">${cc.nombre}</span>
+          ${haySuc ? `<span class="gh-toggle" id="toggle-${grupoId}">▼</span>` : ''}
+        </div>
+        <span class="gh-badge" style="background:${est.color};color:${est.text};">${est.label}</span>
+        ${loc ? `<div class="gh-ciudad"><i class="ti ti-map-pin" style="font-size:10px;"></i> ${loc}</div>` : ''}
+        <div style="font-size:11px;color:#5a6a85;margin-top:3px;">${ct}${mas}</div>
+        <div class="gh-actions" onclick="event.stopPropagation()">
+          <button onclick="centrarEn(${cc.id})"><i class="ti ti-map-pin"></i> Ver</button>
+          <button onclick="abrirModal(${cc.id})"><i class="ti ti-edit"></i> Editar</button>
+          <button class="btn-del" onclick="eliminarEmpresa(${cc.id})"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`;
+
+    if (haySuc) {
+      html += `<div class="sucursales-wrap" id="${grupoId}">`;
+      hijosMatch.forEach(s => {
+        const {est:se, ct:sc, mas:sm, loc:sl} = cardContactos(s);
+        html += `<div class="sucursal-card" style="border-left-color:${se.color};">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:13px;">🏪</span>
+            <span class="sc-nombre">${s.nombre}</span>
+          </div>
+          <span class="sc-badge" style="background:${se.color};color:${se.text};">${se.label}</span>
+          ${sl ? `<div class="sc-ciudad"><i class="ti ti-map-pin" style="font-size:9px;"></i> ${sl}</div>` : ''}
+          <div class="sc-contactos">${sc}${sm}</div>
+          <div class="sc-actions">
+            <button onclick="centrarEn(${s.id})"><i class="ti ti-map-pin"></i> Ver</button>
+            <button onclick="abrirModal(${s.id})"><i class="ti ti-edit"></i> Editar</button>
+            <button class="btn-del" onclick="eliminarEmpresa(${s.id})"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+
+  // Sucursales sin casa central registrada
+  sueltas.filter(match).forEach(s => {
+    const {est, ct, mas, loc} = cardContactos(s);
+    html += `<div class="empresa-card" style="border-left-color:${est.color};">
+      <div style="display:flex;align-items:center;gap:6px;"><span>🏪</span><span class="ec-nombre">${s.nombre}</span></div>
       <span class="ec-badge" style="background:${est.color};color:${est.text};">${est.label}</span>
       ${loc ? `<div class="ec-ciudad"><i class="ti ti-map-pin" style="font-size:10px;"></i> ${loc}</div>` : ''}
       <div class="ec-contactos">${ct}${mas}</div>
       <div class="ec-actions">
-        <button onclick="centrarEn(${e.id})"><i class="ti ti-map-pin"></i> Ver</button>
-        <button onclick="abrirModal(${e.id})"><i class="ti ti-edit"></i> Editar</button>
-        <button class="btn-del" onclick="eliminarEmpresa(${e.id})"><i class="ti ti-trash"></i></button>
+        <button onclick="centrarEn(${s.id})"><i class="ti ti-map-pin"></i> Ver</button>
+        <button onclick="abrirModal(${s.id})"><i class="ti ti-edit"></i> Editar</button>
+        <button class="btn-del" onclick="eliminarEmpresa(${s.id})"><i class="ti ti-trash"></i></button>
       </div>
     </div>`;
-  }).join('') : '<div class="empty-msg">Sin resultados</div>';
+  });
+
+  if (!html) html = '<div class="empty-msg">Sin resultados</div>';
   ['lista-empresas','d-lista-empresas'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
+}
+
+function toggleGrupo(id) {
+  const wrap   = document.getElementById(id);
+  const toggle = document.getElementById('toggle-' + id);
+  if (!wrap) return;
+  const open = wrap.classList.toggle('open');
+  if (toggle) toggle.classList.toggle('open', open);
 }
 
 function centrarEn(id) {
@@ -545,7 +720,7 @@ function desktopTab(tab, btn) {
 /* ── STORAGE: Google Sheets + cache local ── */
 
 function datosLimpios() {
-  return empresas.map(({id,nombre,estado,ciudad,contactos,lat,lng}) => ({id,nombre,estado,ciudad,contactos,lat,lng}));
+  return empresas.map(({id,nombre,estado,tipo,madre,ciudad,contactos,lat,lng}) => ({id,nombre,estado,tipo:tipo||'cc',madre:madre||null,ciudad,contactos,lat,lng}));
 }
 
 function guardarLocal() {
