@@ -1,72 +1,99 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapa de Empresas — Argentina</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: #2c3e50; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    header { background: #1a2740; color: #fff; padding: 11px 18px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    header h1 { font-size: 15px; font-weight: 500; }
-    header span { font-size: 12px; color: #8a99b0; margin-left: auto; }
-    .container { display: flex; gap: 10px; padding: 10px; flex: 1; overflow: hidden; }
-    #map-wrap { flex: 1; position: relative; border-radius: 10px; overflow: hidden; border: 1px solid #dce3ed; }
-    #map { width: 100%; height: 100%; }
-    .panel { width: 290px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
-    .card { background: #fff; border: 1px solid #dce3ed; border-radius: 10px; padding: 12px; }
-    .card-title { font-weight: 500; font-size: 13px; color: #1a2740; margin-bottom: 9px; display: flex; align-items: center; gap: 6px; }
-    input[type=text], select { width: 100%; padding: 6px 9px; border: 1px solid #dce3ed; border-radius: 7px; font-size: 12px; color: #2c3e50; background: #f9fafc; outline: none; margin-bottom: 6px; }
-    input[type=text]:focus, select:focus { border-color: #378ADD; background: #fff; }
-    select { cursor: pointer; }
-    .btn-row { display: flex; gap: 6px; margin-top: 2px; }
-    button { padding: 6px 11px; border: 1px solid #dce3ed; border-radius: 7px; background: #fff; color: #2c3e50; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s; white-space: nowrap; }
-    button:hover { background: #f0f4f8; }
-    button.primary { background: #1a2740; color: #fff; border-color: #1a2740; flex: 1; justify-content: center; }
-    button.primary:hover { background: #243655; }
-    button.secondary { flex: 1; justify-content: center; }
-    #coord-info { font-size: 11px; color: #8a99b0; margin-top: 4px; min-height: 14px; }
-    .list-card { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    #lista-empresas { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; margin-top: 5px; padding-right: 2px; }
-    .empresa-item { background: #f9fafc; border: 1px solid #dce3ed; border-radius: 8px; padding: 8px 10px; border-left: 4px solid #ccc; }
-    .empresa-item .nombre { font-weight: 500; font-size: 12px; color: #1a2740; }
-    .empresa-item .estado-badge { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 10px; margin-top: 3px; font-weight: 500; }
-    .empresa-item .contactos-mini { font-size: 11px; color: #5a6a85; margin-top: 4px; }
-    .empresa-item .ciudad { font-size: 10px; color: #8a99b0; margin-top: 2px; }
-    .empresa-item .acciones { display: flex; gap: 3px; margin-top: 6px; }
-    .empresa-item .acciones button { padding: 2px 7px; font-size: 11px; }
-    .empresa-item .acciones .btn-del { color: #c0392b; border-color: #f5c6c6; }
-    .empresa-item .acciones .btn-del:hover { background: #fdf0f0; }
-    #contador { font-size: 11px; color: #8a99b0; margin-left: auto; }
-    .click-hint { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; padding: 5px 14px; border-radius: 20px; font-size: 11px; pointer-events: none; z-index: 999; white-space: nowrap; }
-    .empty-msg { font-size: 12px; color: #8a99b0; text-align: center; padding: 18px 0; }
-    #btn-guardar { display: none; }
-    .contacto-row { display: flex; gap: 5px; margin-bottom: 5px; align-items: flex-start; }
-    .contacto-row input { margin-bottom: 0; flex: 1; }
-    .contacto-row .btn-rem { padding: 5px 7px; flex-shrink: 0; color: #c0392b; border-color: #f5c6c6; }
-    .contacto-row .btn-rem:hover { background: #fdf0f0; }
-    #btn-add-contacto { font-size: 11px; color: #378ADD; border-color: #b5d4f4; margin-bottom: 6px; width: 100%; justify-content: center; }
-    #btn-add-contacto:hover { background: #eaf3fb; }
-    .section-label { font-size: 11px; color: #8a99b0; margin-bottom: 4px; margin-top: 2px; }
-    .filter-row { display: flex; gap: 5px; margin-bottom: 5px; }
-    .filter-row select, .filter-row input { margin-bottom: 0; }
-    .legend { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
-    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #5a6a85; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000; align-items: center; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: #fff; border-radius: 12px; padding: 20px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
-    .modal h2 { font-size: 15px; font-weight: 500; color: #1a2740; margin-bottom: 14px; }
-    .modal label { font-size: 12px; color: #5a6a85; display: block; margin-bottom: 3px; }
-    .modal input[type=text], .modal select { margin-bottom: 10px; }
-    .modal .btn-row { margin-top: 4px; }
-    .modal .contacto-block { background: #f4f6f9; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
-    .modal .contacto-block .fila { display: flex; gap: 6px; margin-bottom: 5px; }
-    .modal .contacto-block .fila input { flex: 1; margin-bottom: 0; }
-    .modal .contacto-block .fila:last-child { margin-bottom: 0; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Mapa de Empresas — Argentina</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;width:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#2c3e50;background:#1a2740;}
+
+header{position:fixed;top:0;left:0;right:0;z-index:1000;background:#1a2740;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;height:48px;}
+header h1{font-size:14px;font-weight:500;flex:1;}
+header span{font-size:11px;color:#8a99b0;}
+
+#map{position:fixed;top:48px;left:0;right:0;bottom:0;z-index:0;}
+
+.fab-group{position:fixed;right:12px;top:60px;z-index:900;display:flex;flex-direction:column;gap:8px;}
+.fab{width:42px;height:42px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#1a2740;}
+.fab:active{transform:scale(0.93);}
+.fab.primary{background:#1a2740;color:#fff;}
+
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:1100;pointer-events:none;transition:background 0.25s;}
+.sheet-overlay.open{background:rgba(0,0,0,0.35);pointer-events:all;}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:1200;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,0.18);transform:translateY(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1);max-height:90vh;display:flex;flex-direction:column;}
+.sheet.open{transform:translateY(0);}
+.sheet-handle{width:38px;height:4px;background:#dce3ed;border-radius:4px;margin:10px auto 4px;flex-shrink:0;cursor:pointer;}
+.sheet-header{padding:0 16px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.sheet-header h2{font-size:15px;font-weight:500;color:#1a2740;flex:1;}
+.sheet-header button{padding:5px 10px;border:1px solid #dce3ed;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.sheet-body{overflow-y:auto;padding:0 16px 24px;flex:1;}
+
+@media(min-width:700px){
+  .sheet-overlay,.sheet,.fab-group{display:none!important;}
+  .desktop-panel{display:flex!important;}
+  #map{right:300px;}
+}
+.desktop-panel{display:none;position:fixed;top:48px;right:0;bottom:0;width:300px;z-index:500;background:#f4f6f9;border-left:1px solid #dce3ed;flex-direction:column;overflow:hidden;}
+.desktop-panel .tabs{display:flex;border-bottom:1px solid #dce3ed;flex-shrink:0;}
+.desktop-panel .tabs button{flex:1;padding:10px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;cursor:pointer;color:#5a6a85;}
+.desktop-panel .tabs button.active{color:#1a2740;border-bottom-color:#1a2740;font-weight:500;}
+.desktop-panel .tab-content{display:none;flex:1;overflow-y:auto;padding:12px;flex-direction:column;}
+.desktop-panel .tab-content.active{display:flex;}
+
+label{font-size:11px;color:#8a99b0;display:block;margin-bottom:3px;margin-top:10px;}
+label:first-child{margin-top:0;}
+input[type=text],select{width:100%;padding:9px 11px;border:1px solid #dce3ed;border-radius:8px;font-size:13px;color:#2c3e50;background:#f9fafc;outline:none;}
+input[type=text]:focus,select:focus{border-color:#378ADD;background:#fff;}
+
+/* Autocomplete */
+.autocomplete-wrap{position:relative;margin-bottom:0;}
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #dce3ed;border-radius:9px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:9999;max-height:200px;overflow-y:auto;display:none;}
+.autocomplete-list.open{display:block;}
+.autocomplete-item{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid #f0f4f8;color:#2c3e50;}
+.autocomplete-item:last-child{border-bottom:none;}
+.autocomplete-item:hover,.autocomplete-item.active{background:#f0f4f8;}
+.autocomplete-item small{color:#8a99b0;font-size:11px;display:block;}
+.location-selected{background:#eaf7f0;border:1px solid #a8dfc5;border-radius:8px;padding:8px 11px;font-size:12px;color:#1a6b45;margin-top:6px;display:none;align-items:center;gap:8px;}
+.location-selected.show{display:flex;}
+.location-selected i{font-size:15px;}
+.location-selected .loc-change{margin-left:auto;font-size:11px;color:#378ADD;cursor:pointer;text-decoration:underline;}
+
+.btn-row{display:flex;gap:8px;margin-top:12px;}
+button.btn-primary{flex:1;padding:10px;border:none;border-radius:9px;background:#1a2740;color:#fff;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+button.btn-primary:active{background:#243655;}
+button.btn-sec{flex:1;padding:10px;border:1px solid #dce3ed;border-radius:9px;background:#fff;color:#2c3e50;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+button.btn-sec:active{background:#f0f4f8;}
+
+.contacto-block{background:#f4f6f9;border-radius:9px;padding:10px;margin-top:6px;}
+.contacto-block .c-row{display:flex;gap:6px;margin-bottom:5px;}
+.contacto-block .c-row:last-child{margin-bottom:0;}
+.contacto-block .c-row input{flex:1;margin:0;}
+.btn-add-c{width:100%;margin-top:8px;padding:8px;border:1px dashed #b5d4f4;border-radius:8px;background:transparent;color:#378ADD;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
+.btn-add-c:active{background:#eaf3fb;}
+.btn-rem-c{padding:6px 8px;border:1px solid #f5c6c6;border-radius:7px;background:#fff;color:#c0392b;cursor:pointer;flex-shrink:0;}
+.btn-rem-c:active{background:#fdf0f0;}
+
+.filter-wrap{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.empresa-card{background:#fff;border:1px solid #dce3ed;border-radius:10px;padding:10px 12px;border-left:4px solid #ccc;margin-bottom:6px;}
+.empresa-card .ec-nombre{font-weight:500;font-size:13px;color:#1a2740;}
+.empresa-card .ec-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;margin-top:3px;font-weight:500;}
+.empresa-card .ec-ciudad{font-size:11px;color:#8a99b0;margin-top:2px;}
+.empresa-card .ec-contactos{font-size:11px;color:#5a6a85;margin-top:4px;}
+.empresa-card .ec-actions{display:flex;gap:5px;margin-top:8px;}
+.empresa-card .ec-actions button{padding:5px 10px;border:1px solid #dce3ed;border-radius:7px;background:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;color:#2c3e50;}
+.empresa-card .ec-actions button:active{background:#f0f4f8;}
+.empresa-card .ec-actions .btn-del{color:#c0392b;border-color:#f5c6c6;}
+.empresa-card .ec-actions .btn-del:active{background:#fdf0f0;}
+.empty-msg{text-align:center;color:#8a99b0;font-size:13px;padding:24px 0;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;}
+.modal h2{font-size:15px;font-weight:500;color:#1a2740;margin-bottom:12px;}
+</style>
 </head>
 <body>
 
@@ -76,51 +103,69 @@
   <span id="header-count">0 empresas</span>
 </header>
 
-<div class="container">
-  <div id="map-wrap">
-    <div id="map"></div>
-    <div class="click-hint" id="click-hint">Hacé clic en el mapa o buscá por ciudad para agregar una empresa</div>
+<div id="map"></div>
+
+<!-- FAB móvil -->
+<div class="fab-group">
+  <button class="fab primary" onclick="abrirSheet('nueva')" title="Nueva empresa"><i class="ti ti-plus"></i></button>
+  <button class="fab" onclick="abrirSheet('lista')" title="Ver empresas"><i class="ti ti-list"></i></button>
+</div>
+
+<div class="sheet-overlay" id="sheet-overlay" onclick="cerrarSheet()"></div>
+
+<!-- SHEET NUEVA -->
+<div class="sheet" id="sheet-nueva">
+  <div class="sheet-handle" onclick="cerrarSheet()"></div>
+  <div class="sheet-header">
+    <h2><i class="ti ti-building" style="font-size:15px;margin-right:6px;"></i>Nueva empresa</h2>
+    <button onclick="cerrarSheet()"><i class="ti ti-x"></i></button>
   </div>
-
-  <div class="panel">
-
-    <!-- FORMULARIO RÁPIDO -->
-    <div class="card">
-      <div class="card-title"><i class="ti ti-building"></i> Nueva empresa</div>
-      <input type="text" id="inp-nombre" placeholder="Nombre de la empresa" />
-      <div class="section-label">Estado</div>
-      <select id="inp-estado">
-        <option value="">— Seleccioná un estado —</option>
-        <option value="facturacion">OP con facturación</option>
-        <option value="migracion-final">OP con migración de base final</option>
-        <option value="migracion-via">OP en vía de migración</option>
-        <option value="pre-impl">OP confirmados en pre implementación</option>
-        <option value="prospecto">Prospectos interesados, en seguimiento</option>
-        <option value="no-interesado">OP no interesados</option>
-        <option value="especial">OP especiales</option>
-        <option value="reconectar">OP a reconectar</option>
-      </select>
-      <input type="text" id="inp-ciudad" placeholder="Ciudad o dirección" />
-      <div class="section-label">Contactos</div>
-      <div id="contactos-container"></div>
-      <button id="btn-add-contacto" onclick="agregarFilaContacto()"><i class="ti ti-plus"></i> Agregar contacto</button>
-      <div class="btn-row">
-        <button class="secondary" onclick="buscarDireccion()"><i class="ti ti-search"></i> Buscar</button>
-        <button class="primary" id="btn-guardar" onclick="guardarEmpresa()"><i class="ti ti-check"></i> Guardar</button>
-      </div>
-      <div id="coord-info"></div>
+  <div class="sheet-body">
+    <label>Buscar ubicación</label>
+    <div class="autocomplete-wrap" id="ac-wrap">
+      <input type="text" id="inp-buscar" placeholder="Ej: Buenos Aires, Córdoba..." autocomplete="off" oninput="onBuscarInput('inp-buscar','ac-list')"/>
+      <div class="autocomplete-list" id="ac-list"></div>
     </div>
+    <div class="location-selected" id="loc-selected">
+      <i class="ti ti-map-pin"></i>
+      <span id="loc-texto"></span>
+      <span class="loc-change" onclick="cambiarUbicacion('inp-buscar','ac-list','loc-selected')">Cambiar</span>
+    </div>
+    <label style="margin-top:12px;">Nombre de la empresa</label>
+    <input type="text" id="inp-nombre" placeholder="Ej: Telecom SA"/>
+    <label>Estado</label>
+    <select id="inp-estado">
+      <option value="">— Seleccioná un estado —</option>
+      <option value="facturacion">OP con facturación</option>
+      <option value="migracion-final">OP con migración de base final</option>
+      <option value="migracion-via">OP en vía de migración</option>
+      <option value="pre-impl">OP confirmados en pre implementación</option>
+      <option value="prospecto">Prospectos interesados, en seguimiento</option>
+      <option value="no-interesado">OP no interesados</option>
+      <option value="especial">OP especiales</option>
+      <option value="reconectar">OP a reconectar</option>
+    </select>
+    <label>Contactos</label>
+    <div id="contactos-container"></div>
+    <button class="btn-add-c" onclick="agregarFilaContacto('contactos-container')"><i class="ti ti-plus"></i> Agregar contacto</button>
+    <div class="btn-row">
+      <button class="btn-sec" onclick="cerrarSheet()"><i class="ti ti-x"></i> Cancelar</button>
+      <button class="btn-primary" onclick="guardarEmpresa('inp','contactos-container','loc-selected')"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
 
-    <!-- LISTA -->
-    <div class="card list-card">
-      <div class="card-title">
-        <i class="ti ti-list"></i> Empresas
-        <span id="contador">0</span>
-      </div>
-      <div class="filter-row">
-        <input type="text" id="inp-filtro" placeholder="Buscar..." oninput="renderLista()" style="flex:1;" />
-      </div>
-      <select id="filtro-estado" onchange="renderLista()" style="margin-bottom:4px;">
+<!-- SHEET LISTA -->
+<div class="sheet" id="sheet-lista">
+  <div class="sheet-handle" onclick="cerrarSheet()"></div>
+  <div class="sheet-header">
+    <h2><i class="ti ti-list" style="font-size:15px;margin-right:6px;"></i>Empresas <span id="contador" style="font-size:12px;color:#8a99b0;font-weight:400;"></span></h2>
+    <button onclick="cerrarSheet()"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="sheet-body">
+    <div class="filter-wrap">
+      <input type="text" id="inp-filtro" placeholder="Buscar empresa, contacto..." oninput="renderLista()"/>
+      <select id="filtro-estado" onchange="renderLista()">
         <option value="">Todos los estados</option>
         <option value="facturacion">OP con facturación</option>
         <option value="migracion-final">OP migración base final</option>
@@ -131,20 +176,82 @@
         <option value="especial">OP especiales</option>
         <option value="reconectar">OP a reconectar</option>
       </select>
-      <div id="lista-empresas">
-        <div class="empty-msg">Sin empresas aún</div>
-      </div>
     </div>
+    <div id="lista-empresas"><div class="empty-msg">Sin empresas aún</div></div>
+  </div>
+</div>
 
+<!-- PANEL DESKTOP -->
+<div class="desktop-panel">
+  <div class="tabs">
+    <button class="active" onclick="desktopTab('nueva',this)"><i class="ti ti-plus"></i> Nueva</button>
+    <button onclick="desktopTab('lista',this)"><i class="ti ti-list"></i> Empresas</button>
+  </div>
+  <div class="tab-content active" id="dtab-nueva">
+    <label>Buscar ubicación</label>
+    <div class="autocomplete-wrap">
+      <input type="text" id="d-buscar" placeholder="Ej: Mendoza, Rosario..." autocomplete="off" oninput="onBuscarInput('d-buscar','d-ac-list')"/>
+      <div class="autocomplete-list" id="d-ac-list"></div>
+    </div>
+    <div class="location-selected" id="d-loc-selected">
+      <i class="ti ti-map-pin"></i>
+      <span id="d-loc-texto"></span>
+      <span class="loc-change" onclick="cambiarUbicacion('d-buscar','d-ac-list','d-loc-selected')">Cambiar</span>
+    </div>
+    <label>Nombre de la empresa</label>
+    <input type="text" id="d-nombre" placeholder="Ej: Telecom SA"/>
+    <label>Estado</label>
+    <select id="d-estado">
+      <option value="">— Seleccioná un estado —</option>
+      <option value="facturacion">OP con facturación</option>
+      <option value="migracion-final">OP con migración de base final</option>
+      <option value="migracion-via">OP en vía de migración</option>
+      <option value="pre-impl">OP confirmados en pre implementación</option>
+      <option value="prospecto">Prospectos interesados, en seguimiento</option>
+      <option value="no-interesado">OP no interesados</option>
+      <option value="especial">OP especiales</option>
+      <option value="reconectar">OP a reconectar</option>
+    </select>
+    <label>Contactos</label>
+    <div id="d-contactos"></div>
+    <button class="btn-add-c" onclick="agregarFilaContacto('d-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="guardarEmpresa('d','d-contactos','d-loc-selected')"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+  <div class="tab-content" id="dtab-lista">
+    <input type="text" id="d-filtro" placeholder="Buscar..." oninput="renderLista()" style="margin-bottom:6px;"/>
+    <select id="d-filtro-estado" onchange="renderLista()" style="margin-bottom:10px;">
+      <option value="">Todos los estados</option>
+      <option value="facturacion">OP con facturación</option>
+      <option value="migracion-final">OP migración base final</option>
+      <option value="migracion-via">OP en vía de migración</option>
+      <option value="pre-impl">OP pre implementación</option>
+      <option value="prospecto">Prospectos en seguimiento</option>
+      <option value="no-interesado">OP no interesados</option>
+      <option value="especial">OP especiales</option>
+      <option value="reconectar">OP a reconectar</option>
+    </select>
+    <div id="d-lista-empresas"><div class="empty-msg">Sin empresas aún</div></div>
   </div>
 </div>
 
 <!-- MODAL EDICIÓN -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <h2 id="modal-title">Editar empresa</h2>
+    <h2><i class="ti ti-edit" style="font-size:15px;margin-right:6px;"></i>Editar empresa</h2>
+    <label>Ubicación actual</label>
+    <div class="autocomplete-wrap">
+      <input type="text" id="m-buscar" placeholder="Buscar nueva ubicación..." autocomplete="off" oninput="onBuscarInput('m-buscar','m-ac-list')"/>
+      <div class="autocomplete-list" id="m-ac-list"></div>
+    </div>
+    <div class="location-selected" id="m-loc-selected">
+      <i class="ti ti-map-pin"></i>
+      <span id="m-loc-texto"></span>
+      <span class="loc-change" onclick="cambiarUbicacion('m-buscar','m-ac-list','m-loc-selected')">Cambiar</span>
+    </div>
     <label>Nombre</label>
-    <input type="text" id="m-nombre" placeholder="Nombre de la empresa" />
+    <input type="text" id="m-nombre"/>
     <label>Estado</label>
     <select id="m-estado">
       <option value="">— Seleccioná un estado —</option>
@@ -157,316 +264,285 @@
       <option value="especial">OP especiales</option>
       <option value="reconectar">OP a reconectar</option>
     </select>
-    <label>Ciudad / Dirección</label>
-    <input type="text" id="m-ciudad" placeholder="Ciudad o dirección" />
     <label>Contactos</label>
     <div id="m-contactos"></div>
-    <button onclick="agregarFilaContactoModal()" style="font-size:11px;color:#378ADD;border-color:#b5d4f4;width:100%;justify-content:center;margin-bottom:10px;"><i class="ti ti-plus"></i> Agregar contacto</button>
-    <div class="btn-row">
-      <button class="secondary" onclick="cerrarModal()"><i class="ti ti-x"></i> Cancelar</button>
-      <button class="primary" onclick="guardarModal()"><i class="ti ti-check"></i> Guardar cambios</button>
+    <button class="btn-add-c" onclick="agregarFilaContacto('m-contactos')"><i class="ti ti-plus"></i> Agregar contacto</button>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn-sec" onclick="cerrarModal()"><i class="ti ti-x"></i> Cancelar</button>
+      <button class="btn-primary" onclick="guardarModal()"><i class="ti ti-check"></i> Guardar</button>
     </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const STORAGE_KEY = 'mapa-empresas-arg-v2';
-
-const ESTADOS = {
-  'facturacion':      { label: 'OP con facturación',                color: '#27ae60', text: '#fff' },
-  'migracion-final':  { label: 'OP migración base final',           color: '#2980b9', text: '#fff' },
-  'migracion-via':    { label: 'OP en vía de migración',            color: '#e67e22', text: '#fff' },
-  'pre-impl':         { label: 'OP pre implementación',             color: '#f1c40f', text: '#7a6000' },
-  'prospecto':        { label: 'Prospectos en seguimiento',         color: '#e74c3c', text: '#fff' },
-  'no-interesado':    { label: 'OP no interesados',                 color: '#2c3e50', text: '#fff' },
-  'especial':         { label: 'OP especiales',                     color: '#8e44ad', text: '#fff' },
-  'reconectar':       { label: 'OP a reconectar',                   color: '#a29bfe', text: '#4a3d8f' },
+const STORAGE_KEY='mapa-empresas-arg-v3';
+const ESTADOS={
+  facturacion:      {label:'OP con facturación',              color:'#27ae60',text:'#fff'},
+  'migracion-final':{label:'OP migración base final',         color:'#2980b9',text:'#fff'},
+  'migracion-via':  {label:'OP en vía de migración',          color:'#e67e22',text:'#fff'},
+  'pre-impl':       {label:'OP pre implementación',           color:'#f1c40f',text:'#7a6000'},
+  prospecto:        {label:'Prospectos en seguimiento',       color:'#e74c3c',text:'#fff'},
+  'no-interesado':  {label:'OP no interesados',               color:'#2c3e50',text:'#fff'},
+  especial:         {label:'OP especiales',                   color:'#8e44ad',text:'#fff'},
+  reconectar:       {label:'OP a reconectar',                 color:'#a29bfe',text:'#4a3d8f'},
 };
 
-let map, tempMarker, pendingLatLng, editandoId = null;
-let empresas = [];
+let map, empresas=[], modalId=null;
+// pending locations keyed by form prefix
+const pending={};
 
-// ── MAP ──────────────────────────────────────────────────────────────────────
-function initMap() {
-  map = L.map('map').setView([-38.5, -63.5], 4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
-    maxZoom: 18
+/* ── MAP ── */
+function initMap(){
+  map=L.map('map',{zoomControl:false}).setView([-38.5,-63.5],4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>',maxZoom:18
   }).addTo(map);
-  map.on('click', function(e) {
-    setPendingLocation(e.latlng.lat, e.latlng.lng);
-    document.getElementById('click-hint').style.display = 'none';
-  });
+  L.control.zoom({position:'bottomright'}).addTo(map);
 }
 
-function markerIcon(estado) {
-  const c = (ESTADOS[estado] || { color: '#aaa' }).color;
-  return L.divIcon({
-    className: '',
-    html: `<div style="width:22px;height:22px;border-radius:50%;background:${c};border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);cursor:pointer;"></div>`,
-    iconAnchor: [11, 11]
-  });
+function markerIcon(estado){
+  const c=(ESTADOS[estado]||{color:'#aaa'}).color;
+  return L.divIcon({className:'',html:`<div style="width:24px;height:24px;border-radius:50%;background:${c};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>`,iconAnchor:[12,12]});
 }
 
-function tempIcon() {
-  return L.divIcon({
-    className: '',
-    html: '<div style="width:20px;height:20px;border-radius:50%;background:#378ADD;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
-    iconAnchor: [10, 10]
-  });
+/* ── AUTOCOMPLETE ── */
+let acTimers={};
+async function onBuscarInput(inputId,listId){
+  const q=document.getElementById(inputId).value.trim();
+  const list=document.getElementById(listId);
+  clearTimeout(acTimers[inputId]);
+  if(q.length<3){list.classList.remove('open');list.innerHTML='';return;}
+  acTimers[inputId]=setTimeout(async()=>{
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=ar&q=${encodeURIComponent(q)}&limit=6&addressdetails=1`);
+      const data=await r.json();
+      if(!data.length){list.innerHTML='<div class="autocomplete-item" style="color:#8a99b0;">Sin resultados</div>';list.classList.add('open');return;}
+      list.innerHTML=data.map((d,i)=>{
+        const nombre=d.display_name.split(',').slice(0,2).join(',');
+        const detalle=d.display_name.split(',').slice(2,4).join(',').trim();
+        return`<div class="autocomplete-item" data-lat="${d.lat}" data-lon="${d.lon}" data-nombre="${d.display_name.replace(/"/g,'&quot;')}" onclick="seleccionarLugar('${inputId}','${listId}',${d.lat},${d.lon},'${d.display_name.replace(/'/g,"\\'")}')">
+          ${nombre}<small>${detalle}</small>
+        </div>`;
+      }).join('');
+      list.classList.add('open');
+    }catch{}
+  },350);
 }
 
-function setPendingLocation(lat, lng) {
-  if (tempMarker) map.removeLayer(tempMarker);
-  pendingLatLng = { lat, lng };
-  tempMarker = L.marker([lat, lng], { icon: tempIcon() }).addTo(map);
-  document.getElementById('coord-info').textContent = lat.toFixed(5) + ', ' + lng.toFixed(5);
-  document.getElementById('btn-guardar').style.display = 'flex';
+function seleccionarLugar(inputId,listId,lat,lon,nombre){
+  const prefix=inputId.replace('-buscar','').replace('inp','inp');
+  // determine which pending slot and loc elements to use
+  let locId, textoId, pendingKey;
+  if(inputId==='inp-buscar'){pendingKey='inp';locId='loc-selected';textoId='loc-texto';}
+  else if(inputId==='d-buscar'){pendingKey='d';locId='d-loc-selected';textoId='d-loc-texto';}
+  else if(inputId==='m-buscar'){pendingKey='m';locId='m-loc-selected';textoId='m-loc-texto';}
+
+  pending[pendingKey]={lat:+lat,lng:+lon,nombre};
+  document.getElementById(inputId).value='';
+  document.getElementById(listId).classList.remove('open');
+  document.getElementById(listId).innerHTML='';
+
+  const short=nombre.split(',').slice(0,2).join(',');
+  document.getElementById(textoId).textContent=short;
+  document.getElementById(locId).classList.add('show');
+
+  map.setView([+lat,+lon],13);
 }
 
-async function buscarDireccion() {
-  const q = document.getElementById('inp-ciudad').value.trim();
-  if (!q) return;
-  document.getElementById('coord-info').textContent = 'Buscando...';
-  try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=ar&q=${encodeURIComponent(q)}&limit=1`);
-    const data = await r.json();
-    if (data.length) {
-      map.setView([+data[0].lat, +data[0].lon], 13);
-      setPendingLocation(+data[0].lat, +data[0].lon);
-    } else {
-      document.getElementById('coord-info').textContent = 'No se encontró la ubicación';
-    }
-  } catch(e) {
-    document.getElementById('coord-info').textContent = 'Error de conexión';
-  }
+function cambiarUbicacion(inputId,listId,locId){
+  document.getElementById(locId).classList.remove('show');
+  const prefix=inputId.replace('-buscar','');
+  delete pending[prefix==='inp-buscar'?'inp':prefix];
+  document.getElementById(inputId).value='';
+  document.getElementById(inputId).focus();
 }
 
-// ── CONTACTOS FORM ────────────────────────────────────────────────────────────
-function agregarFilaContacto(nombre='', cargo='', tel='') {
-  const c = document.getElementById('contactos-container');
-  const div = document.createElement('div');
-  div.className = 'contacto-block';
-  div.style.cssText = 'background:#f4f6f9;border-radius:8px;padding:8px;margin-bottom:6px;';
-  div.innerHTML = `
-    <div style="display:flex;gap:5px;margin-bottom:4px;">
-      <input type="text" placeholder="Nombre" value="${nombre}" style="flex:1;margin-bottom:0;" />
-      <button class="btn-rem" onclick="this.closest('.contacto-block').remove()" style="padding:4px 7px;color:#c0392b;border-color:#f5c6c6;flex-shrink:0;"><i class="ti ti-x"></i></button>
+/* ── CONTACTOS ── */
+function agregarFilaContacto(containerId,nombre,cargo,tel){
+  const c=document.getElementById(containerId);
+  const div=document.createElement('div');
+  div.className='contacto-block';
+  div.innerHTML=`
+    <div class="c-row">
+      <input type="text" placeholder="Nombre" value="${nombre||''}"/>
+      <button class="btn-rem-c" onclick="this.closest('.contacto-block').remove()"><i class="ti ti-x"></i></button>
     </div>
-    <div style="display:flex;gap:5px;">
-      <input type="text" placeholder="Cargo" value="${cargo}" style="flex:1;margin-bottom:0;" />
-      <input type="text" placeholder="Tel / Email" value="${tel}" style="flex:1;margin-bottom:0;" />
-    </div>
-  `;
+    <div class="c-row">
+      <input type="text" placeholder="Cargo" value="${cargo||''}"/>
+      <input type="text" placeholder="Tel / Email" value="${tel||''}"/>
+    </div>`;
   c.appendChild(div);
 }
 
-function leerContactosForm() {
-  return Array.from(document.querySelectorAll('#contactos-container .contacto-block')).map(b => {
-    const inputs = b.querySelectorAll('input');
-    return { nombre: inputs[0].value.trim(), cargo: inputs[1].value.trim(), tel: inputs[2].value.trim() };
-  }).filter(c => c.nombre || c.tel);
+function leerContactos(containerId){
+  return Array.from(document.querySelectorAll('#'+containerId+' .contacto-block')).map(b=>{
+    const inp=b.querySelectorAll('input');
+    return{nombre:inp[0].value.trim(),cargo:inp[1].value.trim(),tel:inp[2].value.trim()};
+  }).filter(c=>c.nombre||c.tel);
 }
 
-// ── CONTACTOS MODAL ──────────────────────────────────────────────────────────
-function agregarFilaContactoModal(nombre='', cargo='', tel='') {
-  const c = document.getElementById('m-contactos');
-  const div = document.createElement('div');
-  div.className = 'contacto-block';
-  div.innerHTML = `
-    <div class="fila">
-      <input type="text" placeholder="Nombre" value="${nombre}" />
-      <button onclick="this.closest('.contacto-block').remove()" style="padding:4px 7px;color:#c0392b;border-color:#f5c6c6;flex-shrink:0;"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="fila">
-      <input type="text" placeholder="Cargo" value="${cargo}" />
-      <input type="text" placeholder="Tel / Email" value="${tel}" />
-    </div>
-  `;
-  c.appendChild(div);
+/* ── POPUP ── */
+function buildPopup(e){
+  const est=ESTADOS[e.estado];
+  const badge=est?`<span style="background:${est.color};color:${est.text};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">${est.label}</span>`:'';
+  const ct=(e.contactos||[]).map(c=>`<div style="margin-top:5px;padding:5px 7px;background:#f4f6f9;border-radius:6px;font-size:11px;"><b style="color:#1a2740;">${c.nombre||'—'}</b>${c.cargo?` <span style="color:#888;">· ${c.cargo}</span>`:''}${c.tel?`<br/><span style="color:#555;">${c.tel}</span>`:''}</div>`).join('');
+  const loc=e.ciudad?`<br/><span style="color:#888;font-size:11px;">${e.ciudad.split(',').slice(0,2).join(',')}</span>`:'';
+  return`<div style="min-width:170px;max-width:250px;"><b style="font-size:13px;color:#1a2740;">${e.nombre}</b><br/>${badge}${loc}${ct}</div>`;
 }
 
-function leerContactosModal() {
-  return Array.from(document.querySelectorAll('#m-contactos .contacto-block')).map(b => {
-    const inputs = b.querySelectorAll('input');
-    return { nombre: inputs[0].value.trim(), cargo: inputs[1].value.trim(), tel: inputs[2].value.trim() };
-  }).filter(c => c.nombre || c.tel);
-}
+/* ── GUARDAR ── */
+function guardarEmpresa(prefix,contactosId,locId){
+  const p=prefix+'-';
+  const nombre=document.getElementById(p+'nombre').value.trim();
+  const estado=document.getElementById(p+'estado').value;
+  const contactos=leerContactos(contactosId);
+  const loc=pending[prefix==='inp'?'inp':prefix];
 
-// ── POPUP ────────────────────────────────────────────────────────────────────
-function buildPopup(e) {
-  const est = ESTADOS[e.estado];
-  const badge = est ? `<span style="background:${est.color};color:${est.text};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">${est.label}</span>` : '';
-  const contactosHtml = (e.contactos || []).map(c =>
-    `<div style="margin-top:5px;padding:4px 6px;background:#f4f6f9;border-radius:5px;font-size:11px;">
-      <b style="color:#1a2740;">${c.nombre || '—'}</b>
-      ${c.cargo ? `<span style="color:#888;"> · ${c.cargo}</span>` : ''}
-      ${c.tel ? `<br/><span style="color:#555;">${c.tel}</span>` : ''}
-    </div>`
-  ).join('');
-  return `<div style="min-width:160px;">
-    <b style="font-size:13px;color:#1a2740;">${e.nombre}</b><br/>
-    ${badge}<br/>
-    ${e.ciudad ? `<span style="color:#888;font-size:11px;">${e.ciudad}</span>` : ''}
-    ${contactosHtml}
-  </div>`;
-}
+  if(!loc){alert('Buscá y seleccioná una ubicación');return;}
+  if(!nombre){alert('Ingresá el nombre de la empresa');return;}
+  if(!estado){alert('Seleccioná un estado');return;}
 
-// ── CRUD ─────────────────────────────────────────────────────────────────────
-function guardarEmpresa() {
-  const nombre = document.getElementById('inp-nombre').value.trim();
-  const estado = document.getElementById('inp-estado').value;
-  const ciudad = document.getElementById('inp-ciudad').value.trim();
-  const contactos = leerContactosForm();
-  if (!nombre) { document.getElementById('coord-info').textContent = '⚠ Ingresá el nombre'; return; }
-  if (!estado) { document.getElementById('coord-info').textContent = '⚠ Seleccioná un estado'; return; }
-  if (!pendingLatLng) { document.getElementById('coord-info').textContent = '⚠ Seleccioná una ubicación en el mapa o buscá por ciudad'; return; }
-
-  const id = Date.now();
-  const empresa = { id, nombre, estado, ciudad, contactos, lat: pendingLatLng.lat, lng: pendingLatLng.lng };
-  empresa.marker = crearMarker(empresa);
+  const id=Date.now();
+  const empresa={id,nombre,estado,ciudad:loc.nombre,contactos,lat:loc.lat,lng:loc.lng};
+  empresa.marker=crearMarker(empresa);
   empresas.push(empresa);
-  guardarLocal();
-  renderLista();
-  limpiarForm();
+  guardarLocal();renderLista();
+
+  // limpiar
+  document.getElementById(p+'nombre').value='';
+  document.getElementById(p+'estado').value='';
+  document.getElementById(contactosId).innerHTML='';
+  document.getElementById(locId).classList.remove('show');
+  delete pending[prefix==='inp'?'inp':prefix];
+  cerrarSheet();
 }
 
-function crearMarker(e) {
-  const m = L.marker([e.lat, e.lng], { icon: markerIcon(e.estado) }).addTo(map);
-  m.bindPopup(buildPopup(e), { maxWidth: 240 });
+function crearMarker(e){
+  const m=L.marker([e.lat,e.lng],{icon:markerIcon(e.estado)}).addTo(map);
+  m.bindPopup(buildPopup(e),{maxWidth:260});
   return m;
 }
 
-function actualizarMarker(e) {
-  e.marker.setIcon(markerIcon(e.estado));
-  e.marker.setPopupContent(buildPopup(e));
-}
-
-function limpiarForm() {
-  document.getElementById('inp-nombre').value = '';
-  document.getElementById('inp-estado').value = '';
-  document.getElementById('inp-ciudad').value = '';
-  document.getElementById('contactos-container').innerHTML = '';
-  document.getElementById('coord-info').textContent = '';
-  document.getElementById('btn-guardar').style.display = 'none';
-  if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
-  pendingLatLng = null;
-}
-
-function eliminarEmpresa(id) {
-  if (!confirm('¿Eliminar esta empresa?')) return;
-  const idx = empresas.findIndex(e => e.id === id);
-  if (idx === -1) return;
+function eliminarEmpresa(id){
+  if(!confirm('¿Eliminar esta empresa?'))return;
+  const idx=empresas.findIndex(e=>e.id===id);
+  if(idx===-1)return;
   map.removeLayer(empresas[idx].marker);
-  empresas.splice(idx, 1);
-  guardarLocal();
-  renderLista();
+  empresas.splice(idx,1);
+  guardarLocal();renderLista();
 }
 
-// ── MODAL ────────────────────────────────────────────────────────────────────
-let modalId = null;
-function abrirModal(id) {
-  const e = empresas.find(e => e.id === id);
-  if (!e) return;
-  modalId = id;
-  document.getElementById('m-nombre').value = e.nombre;
-  document.getElementById('m-estado').value = e.estado || '';
-  document.getElementById('m-ciudad').value = e.ciudad || '';
-  document.getElementById('m-contactos').innerHTML = '';
-  (e.contactos || []).forEach(c => agregarFilaContactoModal(c.nombre, c.cargo, c.tel));
+/* ── MODAL EDICIÓN ── */
+function abrirModal(id){
+  const e=empresas.find(e=>e.id===id);
+  if(!e)return;
+  modalId=id;
+  document.getElementById('m-nombre').value=e.nombre;
+  document.getElementById('m-estado').value=e.estado||'';
+  document.getElementById('m-contactos').innerHTML='';
+  (e.contactos||[]).forEach(c=>agregarFilaContacto('m-contactos',c.nombre,c.cargo,c.tel));
+  // pre-fill location
+  pending['m']={lat:e.lat,lng:e.lng,nombre:e.ciudad||''};
+  document.getElementById('m-loc-texto').textContent=(e.ciudad||'').split(',').slice(0,2).join(',');
+  document.getElementById('m-loc-selected').classList.add('show');
+  document.getElementById('m-buscar').value='';
   document.getElementById('modal').classList.add('open');
 }
-
-function cerrarModal() {
-  document.getElementById('modal').classList.remove('open');
-  modalId = null;
+function cerrarModal(){document.getElementById('modal').classList.remove('open');modalId=null;delete pending['m'];}
+function guardarModal(){
+  const nombre=document.getElementById('m-nombre').value.trim();
+  const estado=document.getElementById('m-estado').value;
+  const contactos=leerContactos('m-contactos');
+  const loc=pending['m'];
+  if(!nombre||!estado){alert('Completá nombre y estado');return;}
+  const e=empresas.find(e=>e.id===modalId);
+  if(!e)return;
+  Object.assign(e,{nombre,estado,contactos});
+  if(loc){e.lat=loc.lat;e.lng=loc.lng;e.ciudad=loc.nombre;e.marker.setLatLng([loc.lat,loc.lng]);}
+  e.marker.setIcon(markerIcon(e.estado));
+  e.marker.setPopupContent(buildPopup(e));
+  guardarLocal();renderLista();cerrarModal();
 }
+document.getElementById('modal').addEventListener('click',function(ev){if(ev.target===this)cerrarModal();});
 
-function guardarModal() {
-  const nombre = document.getElementById('m-nombre').value.trim();
-  const estado = document.getElementById('m-estado').value;
-  const ciudad = document.getElementById('m-ciudad').value.trim();
-  const contactos = leerContactosModal();
-  if (!nombre || !estado) return;
-  const e = empresas.find(e => e.id === modalId);
-  if (!e) return;
-  e.nombre = nombre; e.estado = estado; e.ciudad = ciudad; e.contactos = contactos;
-  actualizarMarker(e);
-  guardarLocal();
-  renderLista();
-  cerrarModal();
-}
-
-document.getElementById('modal').addEventListener('click', function(ev) {
-  if (ev.target === this) cerrarModal();
-});
-
-// ── LISTA ────────────────────────────────────────────────────────────────────
-function renderLista() {
-  const texto = document.getElementById('inp-filtro').value.toLowerCase();
-  const estFiltro = document.getElementById('filtro-estado').value;
-  const lista = document.getElementById('lista-empresas');
-  let filtradas = empresas.filter(e => {
-    const matchTexto = e.nombre.toLowerCase().includes(texto) ||
-      (e.ciudad && e.ciudad.toLowerCase().includes(texto)) ||
-      (e.contactos || []).some(c => (c.nombre+c.cargo+c.tel).toLowerCase().includes(texto));
-    const matchEstado = !estFiltro || e.estado === estFiltro;
-    return matchTexto && matchEstado;
+/* ── LISTA ── */
+function renderLista(){
+  const texto=(document.getElementById('inp-filtro')||{value:''}).value.toLowerCase()||
+              (document.getElementById('d-filtro')||{value:''}).value.toLowerCase();
+  const estado=(document.getElementById('filtro-estado')||{value:''}).value||
+               (document.getElementById('d-filtro-estado')||{value:''}).value;
+  const filtradas=empresas.filter(e=>{
+    const mt=e.nombre.toLowerCase().includes(texto)||
+      (e.ciudad||'').toLowerCase().includes(texto)||
+      (e.contactos||[]).some(c=>(c.nombre+c.cargo+c.tel).toLowerCase().includes(texto));
+    return mt&&(!estado||e.estado===estado);
   });
-  document.getElementById('contador').textContent = empresas.length;
-  document.getElementById('header-count').textContent = empresas.length + ' empresa' + (empresas.length !== 1 ? 's' : '');
-  if (!filtradas.length) {
-    lista.innerHTML = '<div class="empty-msg">Sin resultados</div>';
-    return;
-  }
-  lista.innerHTML = filtradas.map(e => {
-    const est = ESTADOS[e.estado] || { label: '—', color: '#ccc', text: '#555' };
-    const contactosHtml = (e.contactos || []).slice(0,2).map(c =>
-      `<div style="font-size:10px;color:#5a6a85;">${c.nombre}${c.cargo ? ' · '+c.cargo : ''}${c.tel ? ' — '+c.tel : ''}</div>`
-    ).join('');
-    const mas = (e.contactos || []).length > 2 ? `<div style="font-size:10px;color:#8a99b0;">+${e.contactos.length-2} más</div>` : '';
-    return `<div class="empresa-item" style="border-left-color:${est.color};">
-      <div class="nombre">${e.nombre}</div>
-      <span class="estado-badge" style="background:${est.color};color:${est.text};">${est.label}</span>
-      ${e.ciudad ? `<div class="ciudad"><i class="ti ti-map-pin" style="font-size:10px;"></i> ${e.ciudad}</div>` : ''}
-      <div class="contactos-mini">${contactosHtml}${mas}</div>
-      <div class="acciones">
+  const cEl=document.getElementById('contador');
+  if(cEl)cEl.textContent=empresas.length;
+  document.getElementById('header-count').textContent=empresas.length+' empresa'+(empresas.length!==1?'s':'');
+  const html=filtradas.length?filtradas.map(e=>{
+    const est=ESTADOS[e.estado]||{label:'—',color:'#ccc',text:'#555'};
+    const ct=(e.contactos||[]).slice(0,2).map(c=>`<div>${c.nombre}${c.cargo?' · '+c.cargo:''}${c.tel?' — '+c.tel:''}</div>`).join('');
+    const mas=(e.contactos||[]).length>2?`<div style="color:#8a99b0;">+${e.contactos.length-2} más</div>`:'';
+    const loc=e.ciudad?e.ciudad.split(',').slice(0,2).join(','):'';
+    return`<div class="empresa-card" style="border-left-color:${est.color};">
+      <div class="ec-nombre">${e.nombre}</div>
+      <span class="ec-badge" style="background:${est.color};color:${est.text};">${est.label}</span>
+      ${loc?`<div class="ec-ciudad"><i class="ti ti-map-pin" style="font-size:10px;"></i> ${loc}</div>`:''}
+      <div class="ec-contactos">${ct}${mas}</div>
+      <div class="ec-actions">
         <button onclick="centrarEn(${e.id})"><i class="ti ti-map-pin"></i> Ver</button>
         <button onclick="abrirModal(${e.id})"><i class="ti ti-edit"></i> Editar</button>
         <button class="btn-del" onclick="eliminarEmpresa(${e.id})"><i class="ti ti-trash"></i></button>
       </div>
     </div>`;
-  }).join('');
+  }).join(''):'<div class="empty-msg">Sin resultados</div>';
+  ['lista-empresas','d-lista-empresas'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
 }
 
-function centrarEn(id) {
-  const e = empresas.find(e => e.id === id);
-  if (!e) return;
-  map.setView([e.lat, e.lng], 13);
+function centrarEn(id){
+  const e=empresas.find(e=>e.id===id);
+  if(!e)return;
+  map.setView([e.lat,e.lng],13);
   e.marker.openPopup();
+  cerrarSheet();
 }
 
-// ── STORAGE ──────────────────────────────────────────────────────────────────
-function guardarLocal() {
-  const datos = empresas.map(({ id, nombre, estado, ciudad, contactos, lat, lng }) => ({ id, nombre, estado, ciudad, contactos, lat, lng }));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+/* ── SHEETS ── */
+function abrirSheet(cual){
+  cerrarSheet();
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.getElementById('sheet-'+cual).classList.add('open');
+}
+function cerrarSheet(){
+  document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
+  document.getElementById('sheet-overlay').classList.remove('open');
 }
 
-function cargarLocal() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    JSON.parse(raw).forEach(e => {
-      const marker = crearMarker(e);
-      empresas.push({ ...e, marker });
-    });
+/* ── DESKTOP TABS ── */
+function desktopTab(tab,btn){
+  document.querySelectorAll('.desktop-panel .tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.desktop-panel .tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dtab-'+tab).classList.add('active');
+}
+
+/* ── STORAGE ── */
+function guardarLocal(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(
+    empresas.map(({id,nombre,estado,ciudad,contactos,lat,lng})=>({id,nombre,estado,ciudad,contactos,lat,lng}))
+  ));
+}
+function cargarLocal(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return;
+    JSON.parse(raw).forEach(e=>{empresas.push({...e,marker:crearMarker(e)});});
     renderLista();
-    if (empresas.length) document.getElementById('click-hint').style.display = 'none';
-  } catch(e) {}
+  }catch{}
 }
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
 initMap();
 cargarLocal();
 </script>
