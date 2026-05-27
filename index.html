@@ -9,28 +9,26 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;width:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#2c3e50;background:#1a2740;}
-header{position:fixed;top:0;left:0;right:0;z-index:1000;background:#1a2740;color:#fff;padding:0 14px;display:flex;flex-direction:column;justify-content:center;}
-.header-row1{display:flex;align-items:center;gap:8px;height:48px;}
+header{position:fixed;top:0;left:0;right:0;z-index:1000;background:#1a2740;color:#fff;padding:0 14px;height:48px;display:flex;align-items:center;gap:8px;}
 header h1{font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 header span{font-size:11px;color:#8a99b0;white-space:nowrap;}
-.header-row2{display:flex;gap:6px;padding:0 0 8px;flex-wrap:nowrap;}
 .header-btns-desktop{display:flex;gap:4px;flex-shrink:0;}
-.hbtn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;flex:1;justify-content:center;}
-.hbtn:hover{background:rgba(255,255,255,0.22);}
-.hbtn-icon{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:7px;padding:5px 10px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.hbtn-icon{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:7px;padding:5px 10px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .hbtn-icon:hover{background:rgba(255,255,255,0.22);}
-@media(min-width:700px){
-  .header-row2{display:none;}
-  .header-btns-desktop{display:flex;}
-  header{height:48px;flex-direction:row;align-items:center;padding:0 14px;}
-  .header-row1{flex:1;height:auto;}
+/* Menú móvil */
+.mob-menu-btn{display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:7px;width:34px;height:34px;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;}
+.mob-menu-btn:active{background:rgba(255,255,255,0.25);}
+.mob-menu-dropdown{display:none;position:fixed;top:52px;right:10px;background:#1a2740;border:1px solid rgba(255,255,255,0.15);border-radius:12px;z-index:1500;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.4);min-width:200px;}
+.mob-menu-dropdown.open{display:block;}
+.mob-menu-item{display:flex;align-items:center;gap:10px;padding:13px 16px;color:#fff;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.08);}
+.mob-menu-item:last-child{border-bottom:none;}
+.mob-menu-item:active{background:rgba(255,255,255,0.12);}
+.mob-menu-item i{font-size:16px;opacity:0.8;}
+@media(max-width:699px){
+  .header-btns-desktop{display:none;}
+  .mob-menu-btn{display:flex;}
 }
 #map{position:fixed;top:48px;left:0;right:0;bottom:0;z-index:0;}
-@media(max-width:699px){
-  header{height:auto;}
-  #map{top:96px;}
-  .fab-group{top:108px;}
-}
 .fab-group{position:fixed;right:12px;top:60px;z-index:900;display:flex;flex-direction:column;gap:8px;}
 .fab{width:42px;height:42px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#1a2740;}
 .fab:active{transform:scale(0.93);}
@@ -107,29 +105,29 @@ button.btn-sec:active{background:#f0f4f8;}
 <body>
 
 <header>
-  <!-- Fila 1: título y contador -->
-  <div class="header-row1">
-    <i class="ti ti-map-pin" style="font-size:18px;flex-shrink:0;"></i>
-    <h1>Mapa de Empresas CORE</h1>
-    <!-- Solo visible en desktop -->
-    <div class="header-btns-desktop">
-      <button class="hbtn-icon" onclick="exportarExcel()" title="Bajar Excel"><i class="ti ti-table"></i> Excel</button>
-      <button class="hbtn-icon" onclick="document.getElementById('imp-excel-file').click()" title="Importar Excel"><i class="ti ti-table-import"></i> Importar</button>
-      <button class="hbtn-icon" onclick="exportarJSON()" title="Backup JSON"><i class="ti ti-download"></i></button>
-      <button class="hbtn-icon" onclick="document.getElementById('imp-json-file').click()" title="Restaurar JSON"><i class="ti ti-upload"></i></button>
-    </div>
-    <span id="header-count">0</span>
+  <i class="ti ti-map-pin" style="font-size:18px;flex-shrink:0;"></i>
+  <h1>Mapa de Empresas CORE</h1>
+  <!-- Desktop: botones visibles -->
+  <div class="header-btns-desktop">
+    <button class="hbtn-icon" onclick="exportarExcel()" title="Bajar Excel"><i class="ti ti-table"></i> Excel</button>
+    <button class="hbtn-icon" onclick="document.getElementById('imp-excel-file').click()" title="Importar Excel"><i class="ti ti-table-import"></i> Importar</button>
+    <button class="hbtn-icon" onclick="exportarJSON()" title="Backup"><i class="ti ti-download"></i></button>
+    <button class="hbtn-icon" onclick="document.getElementById('imp-json-file').click()" title="Restaurar"><i class="ti ti-upload"></i></button>
   </div>
-  <!-- Fila 2: botones solo en móvil -->
-  <div class="header-row2">
-    <button class="hbtn" onclick="exportarExcel()"><i class="ti ti-table"></i> Bajar Excel</button>
-    <button class="hbtn" onclick="document.getElementById('imp-excel-file').click()"><i class="ti ti-table-import"></i> Importar Excel</button>
-    <button class="hbtn" onclick="exportarJSON()"><i class="ti ti-download"></i> Backup</button>
-    <button class="hbtn" onclick="document.getElementById('imp-json-file').click()"><i class="ti ti-upload"></i> Restaurar</button>
-  </div>
+  <!-- Móvil: un solo botón que abre menú -->
+  <button class="mob-menu-btn" onclick="toggleMobMenu()" id="mob-menu-btn" title="Opciones"><i class="ti ti-dots-vertical"></i></button>
+  <span id="header-count">0</span>
   <input type="file" id="imp-excel-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importarExcel(event)"/>
   <input type="file" id="imp-json-file" accept=".json" style="display:none" onchange="importarJSON(event)"/>
 </header>
+
+<!-- Menú desplegable móvil -->
+<div class="mob-menu-dropdown" id="mob-menu">
+  <div class="mob-menu-item" onclick="mobAccion('excel')"><i class="ti ti-table"></i> Bajar Excel</div>
+  <div class="mob-menu-item" onclick="mobAccion('importar')"><i class="ti ti-table-import"></i> Importar Excel</div>
+  <div class="mob-menu-item" onclick="mobAccion('backup')"><i class="ti ti-download"></i> Backup JSON</div>
+  <div class="mob-menu-item" onclick="mobAccion('restaurar')"><i class="ti ti-upload"></i> Restaurar JSON</div>
+</div>
 
 <div id="map"></div>
 <div class="toast" id="toast"></div>
@@ -608,9 +606,13 @@ function importarExcel(event) {
       const datos = (primera.includes('empresa')||primera.includes('nombre')||primera.includes('estado')) ? filas.slice(1) : filas;
 
       // Agrupar por empresa — columnas: 0=Empresa,1=Estado,2=Ubicacion,3=Contacto,4=Cargo,5=Telefono,6=Email
+      // Si la columna Empresa está vacía, se hereda el nombre de la fila anterior (estilo Excel)
       const grupos = {};
+      let ultimoNombre = '';
       datos.forEach(row => {
-        const nom = String(row[0]||'').trim(); if (!nom) return;
+        const nom = String(row[0]||'').trim() || ultimoNombre;
+        if (!nom) return;
+        ultimoNombre = nom;
         if (!grupos[nom]) {
           grupos[nom] = {
             nombre: nom,
@@ -618,6 +620,14 @@ function importarExcel(event) {
             ciudad: String(row[2]||'').trim(),
             contactos: []
           };
+        }
+        // Si la fila tiene datos de estado/ciudad aunque sea continuación, actualizar si estaban vacíos
+        if (!grupos[nom].estado || grupos[nom].estado === 'prospecto') {
+          const est = MAPA_ESTADOS[String(row[1]||'').trim().toLowerCase()];
+          if (est) grupos[nom].estado = est;
+        }
+        if (!grupos[nom].ciudad && String(row[2]||'').trim()) {
+          grupos[nom].ciudad = String(row[2]||'').trim();
         }
         const cNom  = String(row[3]||'').trim();
         const cargo = String(row[4]||'').trim();
@@ -717,6 +727,28 @@ function mostrarToast(msg) {
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
+
+
+/* ── MENÚ MÓVIL ── */
+function toggleMobMenu() {
+  const menu = document.getElementById('mob-menu');
+  menu.classList.toggle('open');
+}
+function mobAccion(accion) {
+  document.getElementById('mob-menu').classList.remove('open');
+  if (accion === 'excel')    exportarExcel();
+  if (accion === 'importar') document.getElementById('imp-excel-file').click();
+  if (accion === 'backup')   exportarJSON();
+  if (accion === 'restaurar') document.getElementById('imp-json-file').click();
+}
+// Cerrar menú al tocar fuera
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('mob-menu');
+  const btn  = document.getElementById('mob-menu-btn');
+  if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open');
+  }
+});
 
 initMap();
 cargarLocal();
