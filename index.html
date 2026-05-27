@@ -135,6 +135,7 @@ button.btn-sec:active{background:#f0f4f8;}
 <div class="fab-group">
   <button class="fab primary" onclick="abrirSheet('nueva')"><i class="ti ti-plus"></i></button>
   <button class="fab" onclick="abrirSheet('lista')"><i class="ti ti-list"></i></button>
+  <button class="fab" onclick="cargarSheets()" title="Sincronizar"><i class="ti ti-refresh"></i></button>
 </div>
 
 <div class="sheet-overlay" id="sheet-overlay" onclick="cerrarSheet()"></div>
@@ -300,8 +301,9 @@ button.btn-sec:active{background:#f0f4f8;}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── CLAVE FIJA — nunca cambiar ──
-const STORAGE_KEY = 'mapa-empresas-argentina';
+// ── BASE DE DATOS GOOGLE SHEETS ──
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgpRSh0jQ5er3nAD0h7-Dsn5FeWkQ6PnZc_aWjvTGZsulUhzipIiIxIRspxzDJEmVkPw/exec';
+const STORAGE_KEY = 'mapa-empresas-argentina'; // cache local
 
 const ESTADOS = {
   facturacion:       {label:'OP con facturación',              color:'#27ae60', text:'#fff'},
@@ -437,7 +439,7 @@ function guardarNueva(prefix, contactosId, locId) {
   if (!estado) { mostrarToast('Seleccioná un estado'); return; }
   const id = Date.now();
   _crearYAgregar({id, nombre, estado, ciudad: loc.nombre, contactos, lat: loc.lat, lng: loc.lng});
-  guardarLocal(); renderLista();
+  guardarSheets(); renderLista();
   document.getElementById(prefix + '-nombre').value = '';
   document.getElementById(prefix + '-estado').value = '';
   document.getElementById(contactosId).innerHTML = '';
@@ -453,7 +455,7 @@ function eliminarEmpresa(id) {
   if (idx === -1) return;
   map.removeLayer(empresas[idx].marker);
   empresas.splice(idx, 1);
-  guardarLocal(); renderLista();
+  guardarSheets(); renderLista();
   mostrarToast('Empresa eliminada');
 }
 
@@ -485,7 +487,7 @@ function guardarModal() {
   if (loc) { e.lat = loc.lat; e.lng = loc.lng; e.ciudad = loc.nombre; e.marker.setLatLng([loc.lat, loc.lng]); }
   e.marker.setIcon(markerIcon(e.estado));
   e.marker.setPopupContent(buildPopup(e));
-  guardarLocal(); renderLista(); cerrarModal();
+  guardarSheets(); renderLista(); cerrarModal();
   mostrarToast('Cambios guardados');
 }
 document.getElementById('modal').addEventListener('click', function(ev) { if (ev.target === this) cerrarModal(); });
@@ -540,19 +542,65 @@ function desktopTab(tab, btn) {
   document.getElementById('dtab-'+tab).classList.add('active');
 }
 
-/* ── STORAGE LOCAL ── */
-function guardarLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(
-    empresas.map(({id,nombre,estado,ciudad,contactos,lat,lng}) => ({id,nombre,estado,ciudad,contactos,lat,lng}))
-  ));
+/* ── STORAGE: Google Sheets + cache local ── */
+
+function datosLimpios() {
+  return empresas.map(({id,nombre,estado,ciudad,contactos,lat,lng}) => ({id,nombre,estado,ciudad,contactos,lat,lng}));
 }
+
+function guardarLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(datosLimpios()));
+}
+
+async function guardarSheets() {
+  guardarLocal();
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({action: 'save', empresas: datosLimpios()})
+    });
+  } catch(e) { mostrarToast('Sin conexion, datos guardados localmente'); }
+}
+
 function cargarLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    JSON.parse(raw).forEach(e => _crearYAgregar(e));
+    if (!raw) return false;
+    const datos = JSON.parse(raw);
+    if (!datos.length) return false;
+    datos.forEach(e => _crearYAgregar(e));
     renderLista();
-  } catch(e) {}
+    return true;
+  } catch(e) { return false; }
+}
+
+async function cargarSheets() {
+  mostrarToast('Sincronizando datos...');
+  try {
+    const r = await fetch(SCRIPT_URL + '?t=' + Date.now());
+    const data = await r.json();
+    if (data.ok && data.empresas && data.empresas.length) {
+      // Limpiar mapa actual
+      empresas.forEach(e => { try { map.removeLayer(e.marker); } catch(err) {} });
+      empresas = [];
+      data.empresas.forEach(e => _crearYAgregar(e));
+      guardarLocal();
+      renderLista();
+      mostrarToast('Datos sincronizados (' + empresas.length + ' empresas)');
+    } else if (data.ok && (!data.empresas || !data.empresas.length)) {
+      // Sheets vacio, subir lo que hay en local
+      const hayLocal = cargarLocal();
+      if (hayLocal && empresas.length) {
+        await guardarSheets();
+        mostrarToast('Datos subidos a la nube (' + empresas.length + ' empresas)');
+      } else {
+        mostrarToast('Base de datos vacia');
+      }
+    }
+  } catch(e) {
+    mostrarToast('Sin conexion, usando datos locales');
+    cargarLocal();
+  }
 }
 
 /* ── EXPORTAR EXCEL (.xlsx) ── */
@@ -711,7 +759,7 @@ function importarJSON(event) {
       const idsExistentes = new Set(empresas.map(e => e.id));
       let imp = 0;
       lista.forEach(emp => { if (!idsExistentes.has(emp.id)) { _crearYAgregar(emp); imp++; } });
-      guardarLocal(); renderLista();
+      guardarSheets(); renderLista();
       mostrarToast(imp + ' empresa' + (imp!==1?'s':'') + ' importada' + (imp!==1?'s':''));
     } catch { mostrarToast('Archivo inválido'); }
     event.target.value = '';
@@ -751,7 +799,7 @@ document.addEventListener('click', function(e) {
 });
 
 initMap();
-cargarLocal();
+cargarSheets();
 </script>
 </body>
 </html>
