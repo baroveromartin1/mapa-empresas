@@ -29,6 +29,17 @@ header span{font-size:11px;color:#8a99b0;white-space:nowrap;}
   .mob-menu-btn{display:flex;}
 }
 #map{position:fixed;top:48px;left:0;right:0;bottom:0;z-index:0;}
+/* Panel resumen */
+.resumen-panel{position:fixed;left:10px;bottom:16px;z-index:800;background:rgba(26,39,64,0.92);backdrop-filter:blur(6px);border-radius:12px;padding:10px 12px;color:#fff;min-width:170px;max-width:220px;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+.resumen-panel.collapsed .resumen-body{display:none;}
+.resumen-title{font-size:12px;font-weight:500;color:#8a99b0;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.resumen-title span{font-size:10px;opacity:0.6;}
+.resumen-item{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:11px;color:#fff;}
+.resumen-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.resumen-dot.suc{border-radius:50%;}
+.resumen-label{flex:1;font-size:11px;line-height:1.3;}
+.resumen-count{font-weight:600;font-size:12px;color:#fff;background:rgba(255,255,255,0.15);border-radius:5px;padding:1px 6px;min-width:22px;text-align:center;}
+@media(min-width:700px){.resumen-panel{left:10px;bottom:20px;}}
 .fab-group{position:fixed;right:12px;top:60px;z-index:900;display:flex;flex-direction:column;gap:8px;}
 .fab{width:42px;height:42px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#1a2740;}
 .fab:active{transform:scale(0.93);}
@@ -157,6 +168,15 @@ button.btn-sec:active{background:#f0f4f8;}
 
 <div id="map"></div>
 <div class="toast" id="toast"></div>
+
+<!-- Panel resumen estados -->
+<div class="resumen-panel" id="resumen-panel">
+  <div class="resumen-title" onclick="toggleResumen()">
+    <span>Resumen por estado</span>
+    <span id="resumen-toggle">▲</span>
+  </div>
+  <div class="resumen-body" id="resumen-body"></div>
+</div>
 
 <div class="fab-group">
   <button class="fab primary" onclick="abrirSheet('nueva')"><i class="ti ti-plus"></i></button>
@@ -691,6 +711,7 @@ function renderLista() {
 
   if (!html) html = '<div class="empty-msg">Sin resultados</div>';
   ['lista-empresas','d-lista-empresas'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
+  renderResumen();
 }
 
 function toggleGrupo(id) {
@@ -855,7 +876,9 @@ function importarExcel(event) {
           tipoRaw   = String(row[1]||'').trim().toLowerCase();
           estadoRaw = String(row[2]||'').trim().toLowerCase();
           ciudadRaw = String(row[3]||'').trim();
-          madreRaw  = String(row[4]||'').trim();
+          // Empresa madre: solo válida si tiene más de 5 chars y existe como empresa en el archivo
+          const madreCandidata = String(row[4]||'').trim();
+          madreRaw  = madreCandidata.length > 5 ? madreCandidata : '';
           cNomI=5; cargoI=6; telI=7; mailI=8;
         } else {
           // Legacy: Empresa|Estado|Ubicacion|Contacto|Cargo|Tel|Email
@@ -982,6 +1005,37 @@ function importarJSON(event) {
     event.target.value = '';
   };
   reader.readAsText(file, 'UTF-8');
+}
+
+/* ── RESUMEN ── */
+function renderResumen() {
+  const body = document.getElementById('resumen-body');
+  if (!body) return;
+  const conteo = {};
+  empresas.forEach(e => { conteo[e.estado] = (conteo[e.estado]||0) + 1; });
+  const total = empresas.length;
+  let html = '';
+  Object.entries(ESTADOS).forEach(([key, est]) => {
+    const n = conteo[key] || 0;
+    if (!n) return;
+    const esSuc = key === 'suc'; // no usado aqui, es por tipo no por estado
+    html += `<div class="resumen-item">
+      <div class="resumen-dot" style="background:${est.color};"></div>
+      <span class="resumen-label">${est.label}</span>
+      <span class="resumen-count">${n}</span>
+    </div>`;
+  });
+  html += `<div style="border-top:1px solid rgba(255,255,255,0.15);margin-top:5px;padding-top:5px;display:flex;justify-content:space-between;font-size:11px;color:#8a99b0;">
+    <span>Total</span><span style="font-weight:600;color:#fff;">${total}</span>
+  </div>`;
+  body.innerHTML = html;
+}
+
+function toggleResumen() {
+  const panel = document.getElementById('resumen-panel');
+  const toggle = document.getElementById('resumen-toggle');
+  panel.classList.toggle('collapsed');
+  toggle.textContent = panel.classList.contains('collapsed') ? '▼' : '▲';
 }
 
 /* ── HELPERS ── */
