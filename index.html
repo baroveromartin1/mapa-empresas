@@ -781,7 +781,7 @@ async function cargarSheets() {
 /* ── EXPORTAR EXCEL (.xlsx) ── */
 function exportarExcel() {
   if (!empresas.length) { mostrarToast('No hay empresas para exportar'); return; }
-  const encabezado = ['Empresa','Estado','Ubicacion','Contacto','Cargo','Telefono','Email'];
+  const encabezado = ['Empresa','Tipo','Empresa Madre','Estado','Ubicacion','Contacto','Cargo','Telefono','Email'];
   const filas = [encabezado];
   empresas.forEach(e => {
     const est = (ESTADOS[e.estado] || {label: e.estado || ''}).label;
@@ -794,7 +794,7 @@ function exportarExcel() {
   });
   const ws = XLSX.utils.aoa_to_sheet(filas);
   // Ancho de columnas
-  ws['!cols'] = [20,32,30,22,18,18,28].map(w => ({wch: w}));
+  ws['!cols'] = [36,14,34,28,34,22,20,16,28].map(w => ({wch: w}));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Empresas');
   XLSX.writeFile(wb, 'empresas-' + new Date().toISOString().slice(0,10) + '.xlsx');
@@ -828,45 +828,77 @@ function importarExcel(event) {
       const primera = filas[0].map(c => String(c).toLowerCase());
       const datos = (primera.includes('empresa')||primera.includes('nombre')||primera.includes('estado')) ? filas.slice(1) : filas;
 
-      // Agrupar por empresa — columnas: 0=Empresa,1=Estado,2=Ubicacion,3=Contacto,4=Cargo,5=Telefono,6=Email
-      // Si la columna Empresa está vacía, se hereda el nombre de la fila anterior (estilo Excel)
+      // Detectar formato: nuevo (con Tipo y Madre) o legacy (sin ellas)
+      // Nuevo: 0=Empresa,1=Tipo,2=Madre,3=Estado,4=Ubicacion,5=Contacto,6=Cargo,7=Tel,8=Email
+      // Legacy: 0=Empresa,1=Estado,2=Ubicacion,3=Contacto,4=Cargo,5=Tel,6=Email
+      const esNuevoFormato = primera.includes('tipo') || primera.includes('empresa madre');
+      // Si la columna Empresa está vacía, se hereda el nombre de la fila anterior
       const grupos = {};
       let ultimoNombre = '';
       datos.forEach(row => {
         const nom = String(row[0]||'').trim() || ultimoNombre;
         if (!nom) return;
         ultimoNombre = nom;
-        if (!grupos[nom]) {
-          grupos[nom] = {
+
+        // Índices según formato
+        let tipoRaw, madreRaw, estadoRaw, ciudadRaw, cNomI, cargoI, telI, mailI;
+        if (esNuevoFormato) {
+          tipoRaw  = String(row[1]||'').trim().toLowerCase();
+          madreRaw = String(row[2]||'').trim();
+          estadoRaw = String(row[3]||'').trim().toLowerCase();
+          ciudadRaw = String(row[4]||'').trim();
+          cNomI=5; cargoI=6; telI=7; mailI=8;
+        } else {
+          tipoRaw  = 'casa central';
+          madreRaw = '';
+          estadoRaw = String(row[1]||'').trim().toLowerCase();
+          ciudadRaw = String(row[2]||'').trim();
+          cNomI=3; cargoI=4; telI=5; mailI=6;
+        }
+
+        const tipo = tipoRaw === 'sucursal' ? 'suc' : 'cc';
+        // Clave única: nombre+ubicacion para distinguir sucursales con mismo nombre
+        const clave = nom + '||' + ciudadRaw;
+
+        if (!grupos[clave]) {
+          grupos[clave] = {
             nombre: nom,
-            estado: MAPA_ESTADOS[String(row[1]||'').trim().toLowerCase()] || 'prospecto',
-            ciudad: String(row[2]||'').trim(),
+            tipo,
+            madreNombre: madreRaw,
+            estado: MAPA_ESTADOS[estadoRaw] || 'prospecto',
+            ciudad: ciudadRaw,
             contactos: []
           };
         }
-        // Si la fila tiene datos de estado/ciudad aunque sea continuación, actualizar si estaban vacíos
-        if (!grupos[nom].estado || grupos[nom].estado === 'prospecto') {
-          const est = MAPA_ESTADOS[String(row[1]||'').trim().toLowerCase()];
-          if (est) grupos[nom].estado = est;
+        if (!grupos[clave].estado || grupos[clave].estado === 'prospecto') {
+          const est = MAPA_ESTADOS[estadoRaw];
+          if (est) grupos[clave].estado = est;
         }
-        if (!grupos[nom].ciudad && String(row[2]||'').trim()) {
-          grupos[nom].ciudad = String(row[2]||'').trim();
-        }
-        const cNom  = String(row[3]||'').trim();
-        const cargo = String(row[4]||'').trim();
-        const tel   = String(row[5]||'').trim();
-        const mail  = String(row[6]||'').trim();
-        if (cNom || tel || mail) grupos[nom].contactos.push({nombre:cNom, cargo, tel, mail});
+        if (!grupos[clave].ciudad && ciudadRaw) grupos[clave].ciudad = ciudadRaw;
+
+        const cNom  = String(row[cNomI]||'').trim();
+        const cargo = String(row[cargoI]||'').trim();
+        const tel   = String(row[telI]||'').trim();
+        const mail  = String(row[mailI]||'').trim();
+        if (cNom || tel || mail) grupos[clave].contactos.push({nombre:cNom, cargo, tel, mail});
       });
 
+      // Resolver referencias madre por nombre → id
       const delExcel = Object.values(grupos);
+      delExcel.forEach(emp => {
+        if (emp.tipo === 'suc' && emp.madreNombre) {
+          const madreEmp = empresas.find(e => e.nombre.toLowerCase().trim() === emp.madreNombre.toLowerCase().trim())
+                        || delExcel.find(e => e.nombre.toLowerCase().trim() === emp.madreNombre.toLowerCase().trim() && e.tipo === 'cc');
+          emp.madre = madreEmp ? String(madreEmp.id || '') : '';
+        }
+      });
       if (!delExcel.length) { mostrarToast('No se encontraron datos válidos'); event.target.value=''; return; }
 
       mostrarToast('Procesando ' + delExcel.length + ' empresas...');
       let actualizadas = 0, agregadas = 0, sinUbicacion = 0;
 
       for (const emp of delExcel) {
-        const idx = empresas.findIndex(ex => ex.nombre.toLowerCase().trim() === emp.nombre.toLowerCase().trim());
+        const idx = empresas.findIndex(ex => ex.nombre.toLowerCase().trim() === emp.nombre.toLowerCase().trim() && (ex.ciudad||'').toLowerCase().trim() === (emp.ciudad||'').toLowerCase().trim());
         if (idx !== -1) {
           // Actualizar existente
           const ex = empresas[idx];
@@ -880,7 +912,7 @@ function importarExcel(event) {
             } catch(err) {}
             await new Promise(res => setTimeout(res, 300));
           }
-          Object.assign(ex, {nombre:emp.nombre, estado:emp.estado, ciudad:emp.ciudad||ex.ciudad, contactos:emp.contactos, lat, lng});
+          Object.assign(ex, {nombre:emp.nombre, estado:emp.estado, tipo:emp.tipo||'cc', madre:emp.madre||null, ciudad:emp.ciudad||ex.ciudad, contactos:emp.contactos, lat, lng});
           ex.marker.setLatLng([lat, lng]);
           ex.marker.setIcon(markerIcon(ex.estado));
           ex.marker.setPopupContent(buildPopup(ex));
@@ -897,7 +929,7 @@ function importarExcel(event) {
             await new Promise(res => setTimeout(res, 300));
           }
           if (!lat) { lat = -38.5+(Math.random()-0.5)*10; lng = -63.5+(Math.random()-0.5)*20; sinUbicacion++; }
-          _crearYAgregar({...emp, id: Date.now()+Math.floor(Math.random()*100000), lat, lng});
+          _crearYAgregar({...emp, id: Date.now()+Math.floor(Math.random()*100000), tipo:emp.tipo||'cc', madre:emp.madre||null, lat, lng});
           agregadas++;
         }
       }
